@@ -1,9 +1,10 @@
-import { ArcanaJSServer } from "../../lib/server";
+import { ArcanaJSServer } from "arcanajs/server";
 import webRoutes from "./routes/web";
 
 const server = new ArcanaJSServer({
   routes: webRoutes,
-  viewsDir: "src/example/views",
 });
+
+const PORT = process.env.PORT || 3000;
 
 server.start();

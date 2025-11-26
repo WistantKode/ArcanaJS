@@ -47,12 +47,36 @@ const findEntry = (searchPaths: string[]): string => {
     return exampleServer;
 
   throw new Error(
-    `Could not find entry point. Searched in: ${searchPaths.join(", ")}`
+    `Could not find entry point. Searched in: ${searchPaths.join(", ")}`,
   );
+};
+
+const getViewsLoaderPath = () => {
+  const viewsDir = path.resolve(cwd, "src/views");
+  const hasViews = fs.existsSync(viewsDir);
+  const viewsLoaderPath = path.resolve(
+    __dirname,
+    "../../node_modules/.cache/arcanajs/views-loader.js",
+  );
+
+  // Ensure cache directory exists
+  const cacheDir = path.dirname(viewsLoaderPath);
+  if (!fs.existsSync(cacheDir)) {
+    fs.mkdirSync(cacheDir, { recursive: true });
+  }
+
+  // Generate the loader file
+  const loaderContent = hasViews
+    ? `module.exports = require.context('${viewsDir}', true, /\\.(tsx|jsx)$/);`
+    : `module.exports = null;`;
+
+  fs.writeFileSync(viewsLoaderPath, loaderContent);
+  return viewsLoaderPath;
 };
 
 export const createClientConfig = (): webpack.Configuration => {
   const isProduction = process.env.NODE_ENV === "production";
+  const viewsLoaderPath = getViewsLoaderPath();
   const clientEntry = findEntry([
     "src/client",
     "src/client/index",
@@ -76,6 +100,9 @@ export const createClientConfig = (): webpack.Configuration => {
     },
     resolve: {
       extensions: [".ts", ".tsx", ".js", ".jsx"],
+      alias: {
+        "arcana-views": viewsLoaderPath,
+      },
     },
     resolveLoader: {
       modules: ["node_modules", path.resolve(__dirname, "../../node_modules")],
@@ -105,8 +132,20 @@ export const createClientConfig = (): webpack.Configuration => {
             isProduction
               ? MiniCssExtractPlugin.loader
               : resolveLoader("style-loader"),
-            resolveLoader("css-loader"),
-            resolveLoader("postcss-loader"),
+            {
+              loader: resolveLoader("css-loader"),
+              options: {
+                importLoaders: 1,
+              },
+            },
+            {
+              loader: resolveLoader("postcss-loader"),
+              options: {
+                postcssOptions: {
+                  config: path.resolve(cwd, "postcss.config.js"),
+                },
+              },
+            },
           ],
         },
         {
@@ -164,26 +203,7 @@ export const createServerConfig = (): webpack.Configuration => {
     "src/server/main",
   ]);
 
-  // View Injection Logic
-  const viewsDir = path.resolve(cwd, "src/views");
-  const hasViews = fs.existsSync(viewsDir);
-  const viewsLoaderPath = path.resolve(
-    __dirname,
-    "../../node_modules/.cache/arcanajs/views-loader.js"
-  );
-
-  // Ensure cache directory exists
-  const cacheDir = path.dirname(viewsLoaderPath);
-  if (!fs.existsSync(cacheDir)) {
-    fs.mkdirSync(cacheDir, { recursive: true });
-  }
-
-  // Generate the loader file
-  const loaderContent = hasViews
-    ? `module.exports = require.context('${viewsDir}', true, /\\.(tsx|jsx)$/);`
-    : `module.exports = null;`;
-
-  fs.writeFileSync(viewsLoaderPath, loaderContent);
+  const viewsLoaderPath = getViewsLoaderPath();
 
   return {
     mode: isProduction ? "production" : "development",

@@ -1,6 +1,6 @@
 {
   "name": "arcanajs",
-  "version": "2.1.6",
+  "version": "2.2.1",
   "description": "ArcanaJS Framework",
   "main": "framework/lib/index.js",
   "types": "framework/lib/index.d.ts",
@@ -16,11 +16,7 @@
     "bin"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json && cp src/lib/server/default-index.html framework/lib/server/ && cp src/lib/global.d.ts framework/lib/",
-    "build:app": "node bin/arcanajs.js build",
-    "dev:app": "node bin/arcanajs.js dev",
-    "start:app": "node bin/arcanajs.js start",
-    "lint": "eslint"
+    "build": "tsc -p tsconfig.json && cp src/lib/server/default-index.html framework/lib/server/ && cp src/lib/global.d.ts framework/lib/ && cp -r src/templates framework/",
   },
   "dependencies": {
     "compression": "^1.8.1",

@@ -182,7 +182,7 @@ export class Router {
 }
 
 /**
- * Static Route class for Laravel-like syntax
+ * Static Route class for ArcanaJS Routing
  */
 export class Route {
   private static _router = new Router();

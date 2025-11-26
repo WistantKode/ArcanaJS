@@ -7,8 +7,8 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "bundler",
-    "module": "ESNext",
+    "moduleResolution": "node",
+    "module": "CommonJS",
     "outDir": "./framework",
     "rootDir": "./src",
     "declaration": true

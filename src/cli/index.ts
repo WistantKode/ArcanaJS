@@ -1,4 +1,5 @@
 import { spawn } from "child_process";
+import fs from "fs";
 import path from "path";
 import webpack from "webpack";
 import { createClientConfig, createServerConfig } from "./webpack.config";
@@ -7,7 +8,7 @@ const args = process.argv.slice(2);
 const command = args[0];
 
 if (!command) {
-  console.error("Please specify a command: dev, build, start");
+  console.error("Please specify a command: init, dev, build, start");
   process.exit(1);
 }
 
@@ -47,7 +48,7 @@ const startDevServer = () => {
 
 const watchCompiler = (
   compiler: webpack.Compiler,
-  onBuildComplete?: () => void
+  onBuildComplete?: () => void,
 ) => {
   compiler.watch({}, (err, stats) => {
     if (err) {
@@ -96,6 +97,99 @@ const dev = async () => {
   });
 };
 
+const init = () => {
+  console.log("Initializing ArcanaJS project with Tailwind CSS...");
+
+  const cwd = process.cwd();
+  const templatesDir = path.resolve(__dirname, "../templates");
+
+  // Create necessary directories
+  const publicDir = path.resolve(cwd, "public");
+  const srcDir = path.resolve(cwd, "src");
+  const clientDir = path.resolve(cwd, "src/client");
+  const serverDir = path.resolve(cwd, "src/server");
+  const routesDir = path.resolve(cwd, "src/server/routes");
+  const controllersDir = path.resolve(cwd, "src/server/controllers");
+  const viewsDir = path.resolve(cwd, "src/views");
+
+  [
+    publicDir,
+    srcDir,
+    clientDir,
+    serverDir,
+    routesDir,
+    controllersDir,
+    viewsDir,
+  ].forEach((dir) => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+      console.log(`Created directory: ${path.relative(cwd, dir)}`);
+    }
+  });
+
+  // Copy configuration files
+  const configFiles = [
+    { src: "package.json", dest: "package.json" },
+    { src: "postcss.config.js", dest: "postcss.config.js" },
+    { src: "globals.css", dest: "src/client/globals.css" },
+    { src: "client-index.tsx", dest: "src/client/index.tsx" },
+    { src: "server-index.ts", dest: "src/server/index.ts" },
+    { src: "server-routes-web.ts", dest: "src/server/routes/web.ts" },
+    {
+      src: "server-controller-home.ts",
+      dest: "src/server/controllers/HomeController.ts",
+    },
+    {
+      src: "HomePage.tsx",
+      dest: "src/views/HomePage.tsx",
+    },
+    {
+      src: "arcanajs.png",
+      dest: "public/arcanajs.png",
+    },
+    {
+      src: "arcanajs.svg",
+      dest: "public/arcanajs.svg",
+    },
+    {
+      src: "favicon.ico",
+      dest: "public/favicon.ico",
+    },
+  ];
+
+  configFiles.forEach(({ src, dest }) => {
+    const srcPath = path.resolve(templatesDir, src);
+    const destPath = path.resolve(cwd, dest);
+
+    if (!fs.existsSync(destPath)) {
+      fs.copyFileSync(srcPath, destPath);
+      console.log(`Created: ${dest}`);
+    } else {
+      console.log(`Skipped: ${dest} (already exists)`);
+    }
+  });
+
+  // Create default error pages
+  const errorPages = ["NotFoundPage.tsx", "ErrorPage.tsx"];
+  errorPages.forEach((page) => {
+    const viewPath = path.resolve(cwd, `src/views/${page}`);
+    const templatePath = path.resolve(templatesDir, page);
+
+    if (!fs.existsSync(viewPath) && fs.existsSync(templatePath)) {
+      fs.copyFileSync(templatePath, viewPath);
+      console.log(`Created: src/views/${page}`);
+    }
+  });
+
+  console.log("\n✅ ArcanaJS project initialized successfully!");
+  console.log("\nNext steps:");
+  console.log("1. Run 'npm run dev' to start development");
+  console.log("2. Visit http://localhost:3000 to see your app");
+  console.log("3. Edit src/views/HomePage.tsx to customize your homepage");
+  console.log("4. Customize your theme in src/client/globals.css");
+  console.log("5. Add your Tailwind classes and enjoy!");
+};
+
 const start = () => {
   process.env.NODE_ENV = "production";
   const serverPath = path.resolve(process.cwd(), "dist/server.js");
@@ -109,6 +203,9 @@ const start = () => {
 };
 
 switch (command) {
+  case "init":
+    init();
+    break;
   case "build":
     build();
     break;

@@ -15,3 +15,7 @@ export * from "./shared/hooks/usePage";
 export * from "./shared/hooks/useParams";
 export * from "./shared/hooks/useQuery";
 export * from "./shared/hooks/useRouter";
+
+// Default error views
+export { default as NotFoundPage } from "./shared/views/NotFoundPage";
+export { default as ErrorPage } from "./shared/views/ErrorPage";

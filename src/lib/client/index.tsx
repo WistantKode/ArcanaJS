@@ -2,10 +2,12 @@ import React from "react";
 import { hydrateRoot } from "react-dom/client";
 import { HeadContext, HeadManager } from "../shared/context/HeadContext";
 import { ArcanaJSApp } from "../shared/core/ArcanaJSApp";
+import ErrorPage from "../shared/views/ErrorPage";
+import NotFoundPage from "../shared/views/NotFoundPage";
 
 export const hydrateArcanaJS = (
   viewsOrContext: Record<string, React.FC<any>> | any,
-  layout?: React.FC<any>
+  layout?: React.FC<any>,
 ) => {
   let views: Record<string, React.FC<any>> = {};
 
@@ -16,6 +18,14 @@ export const hydrateArcanaJS = (
     });
   } else {
     views = viewsOrContext;
+  }
+
+  // Add default error views if not present
+  if (!views["NotFoundPage"]) {
+    views["NotFoundPage"] = NotFoundPage;
+  }
+  if (!views["ErrorPage"]) {
+    views["ErrorPage"] = ErrorPage;
   }
 
   const container = document.getElementById("root");
@@ -30,7 +40,7 @@ export const hydrateArcanaJS = (
   if (container && dataScript) {
     try {
       const { page, data, params, csrfToken } = JSON.parse(
-        dataScript.textContent || "{}"
+        dataScript.textContent || "{}",
       );
       hydrateRoot(
         container,
@@ -43,7 +53,7 @@ export const hydrateArcanaJS = (
             views={views}
             layout={layout}
           />
-        </HeadContext.Provider>
+        </HeadContext.Provider>,
       );
     } catch (e) {
       console.error("Failed to parse initial data", e);

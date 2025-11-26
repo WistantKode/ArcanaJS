@@ -9,6 +9,8 @@ import { createArcanaJSMiddleware } from "./ArcanaJSMiddleware";
 import { createCsrfMiddleware } from "./CsrfMiddleware";
 import { createDynamicRouter } from "./DynamicRouter";
 import { responseHandler } from "./ResponseHandlerMiddleware";
+import NotFoundPage from "../shared/views/NotFoundPage";
+import ErrorPage from "../shared/views/ErrorPage";
 
 export interface ArcanaJSConfig {
   port?: number | string;
@@ -74,11 +76,19 @@ export class ArcanaJSServer {
       views = {};
     }
 
+    // Add default error views if not already present
+    if (!views.NotFoundPage) {
+      views.NotFoundPage = NotFoundPage;
+    }
+    if (!views.ErrorPage) {
+      views.ErrorPage = ErrorPage;
+    }
+
     // Security and Performance
     this.app.use(
       helmet({
         contentSecurityPolicy: false,
-      })
+      }),
     );
     this.app.use(compression());
     this.app.use(cookieParser());
@@ -90,13 +100,13 @@ export class ArcanaJSServer {
       express.static(path.resolve(process.cwd(), distDir), {
         index: false,
         maxAge: "1y",
-      })
+      }),
     );
     this.app.use(
       express.static(path.resolve(process.cwd(), staticDir), {
         index: false,
         maxAge: "1d",
-      })
+      }),
     );
 
     // ArcanaJS Middleware
@@ -105,7 +115,7 @@ export class ArcanaJSServer {
         views,
         indexFile: path.resolve(process.cwd(), indexFile),
         layout,
-      })
+      }),
     );
 
     // Custom Routes
@@ -131,7 +141,7 @@ export class ArcanaJSServer {
         err: any,
         req: express.Request,
         res: express.Response,
-        next: express.NextFunction
+        next: express.NextFunction,
       ) => {
         console.error(err);
         const message =
@@ -139,7 +149,7 @@ export class ArcanaJSServer {
             ? "Internal Server Error"
             : err.message;
         res.status(500).renderPage("ErrorPage", { message });
-      }
+      },
     );
   }
 
