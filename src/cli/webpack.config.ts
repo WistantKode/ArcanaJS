@@ -5,7 +5,6 @@ import path from "path";
 import webpack from "webpack";
 import nodeExternals from "webpack-node-externals";
 
-const isProduction = process.env.NODE_ENV === "production";
 const cwd = process.cwd();
 
 // Helper to resolve loaders from the framework's node_modules
@@ -53,6 +52,7 @@ const findEntry = (searchPaths: string[]): string => {
 };
 
 export const createClientConfig = (): webpack.Configuration => {
+  const isProduction = process.env.NODE_ENV === "production";
   const clientEntry = findEntry([
     "src/client",
     "src/client/index",
@@ -154,6 +154,7 @@ export const createClientConfig = (): webpack.Configuration => {
 };
 
 export const createServerConfig = (): webpack.Configuration => {
+  const isProduction = process.env.NODE_ENV === "production";
   const serverEntry = findEntry([
     "src/server",
     "src/server/index",
