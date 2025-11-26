@@ -16,7 +16,7 @@
     "bin"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.lib.json && cp src/lib/server/default-index.html framework/lib/server/ && cp src/lib/global.d.ts framework/lib/",
+    "build": "tsc -p tsconfig.json && cp src/lib/server/default-index.html framework/lib/server/ && cp src/lib/global.d.ts framework/lib/",
     "build:app": "node bin/arcanajs.js build",
     "dev:app": "node bin/arcanajs.js dev",
     "start:app": "node bin/arcanajs.js start",

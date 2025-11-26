@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 dist
 framework
+test-app 
 build
 .cache
 

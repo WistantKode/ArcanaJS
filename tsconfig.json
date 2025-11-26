@@ -1,16 +1,17 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "CommonJS",
     "lib": ["DOM", "ES2020"],
     "jsx": "react-jsx",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist",
+    "moduleResolution": "node",
+    "module": "CommonJS",
+    "outDir": "./framework",
     "rootDir": "./src",
-    "moduleResolution": "node"
+    "declaration": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/lib/**/*", "src/cli/**/*"]
 }
