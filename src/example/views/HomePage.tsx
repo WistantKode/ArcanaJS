@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Head } from "../../lib";
 import { InfoCard } from "./components/InfoCard";
 
@@ -7,6 +7,10 @@ interface HomePageProps {
 }
 
 const HomePage: React.FC<HomePageProps> = ({ navigateTo }) => {
+  const [test, setTest] = useState("");
+  useEffect(() => {
+    setTest("Test");
+  }, []);
   return (
     <>
       <Head>
@@ -14,6 +18,7 @@ const HomePage: React.FC<HomePageProps> = ({ navigateTo }) => {
       </Head>
 
       <div>
+        <h1>{test}</h1>
         <h1>Welcome SSR mohammed ben cheikh </h1>
         <p>This is the Home Page rendered initially on the server.</p>
 
@@ -27,5 +32,6 @@ const HomePage: React.FC<HomePageProps> = ({ navigateTo }) => {
     </>
   );
 };
+
 
 export default HomePage;

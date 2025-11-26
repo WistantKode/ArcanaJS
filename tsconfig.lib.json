@@ -2,9 +2,9 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "module": "CommonJS",
-    "outDir": "./lib",
-    "rootDir": "./src/lib",
+    "outDir": "./framework",
+    "rootDir": "./src",
     "declaration": true
   },
-  "include": ["src/lib/**/*"]
+  "include": ["src/lib/**/*", "src/cli/**/*"]
 }

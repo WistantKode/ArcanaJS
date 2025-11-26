@@ -1,0 +1,137 @@
+import { NextFunction, Request, Response } from "express";
+import fs from "fs";
+import React from "react";
+import { renderToString } from "react-dom/server";
+import { HeadContext, HeadManager } from "../shared/context/HeadContext";
+import { ArcanaJSApp } from "../shared/core/ArcanaJSApp";
+
+const DEFAULT_HTML_TEMPLATE = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--HEAD_CONTENT-->
+  </head>
+  <body>
+    <div id="root"><!--APP_CONTENT--></div>
+    <!--ARCANAJS_DATA_SCRIPT-->
+  </body>
+</html>`;
+
+// Extend Express Response interface
+declare global {
+  namespace Express {
+    interface Response {
+      renderPage(
+        page: string,
+        data?: any,
+        params?: Record<string, string>
+      ): void;
+    }
+  }
+}
+
+interface ArcanaJSOptions {
+  views: Record<string, React.FC<any>>;
+  indexFile?: string;
+  layout?: React.FC<any>;
+}
+
+// Helper to prevent XSS in initial data
+const safeStringify = (obj: any) => {
+  return JSON.stringify(obj).replace(/</g, "\\u003c");
+};
+
+export const createArcanaJSMiddleware = (options: ArcanaJSOptions) => {
+  const { views, indexFile, layout } = options;
+  let cachedIndexHtml: string | null = null;
+
+  const getIndexHtml = (
+    callback: (err: NodeJS.ErrnoException | null, data: string) => void
+  ) => {
+    if (process.env.NODE_ENV === "production" && cachedIndexHtml) {
+      return callback(null, cachedIndexHtml);
+    }
+
+    if (indexFile && fs.existsSync(indexFile)) {
+      fs.readFile(indexFile, "utf8", (err, htmlData) => {
+        if (!err && process.env.NODE_ENV === "production") {
+          cachedIndexHtml = htmlData;
+        }
+        callback(err, htmlData);
+      });
+    } else {
+      if (process.env.NODE_ENV === "production") {
+        cachedIndexHtml = DEFAULT_HTML_TEMPLATE;
+      }
+      callback(null, DEFAULT_HTML_TEMPLATE);
+    }
+  };
+
+  return (req: Request, res: Response, next: NextFunction) => {
+    res.renderPage = (
+      page: string,
+      data: any = {},
+      params: Record<string, string> = {}
+    ) => {
+      const csrfToken = res.locals.csrfToken;
+
+      if (req.headers["x-arcanajs-request"] || req.query.format === "json") {
+        return res.json({ page, data, params, csrfToken });
+      }
+      try {
+        const headTags: React.ReactNode[] = [];
+        const headManager: HeadManager = {
+          tags: headTags,
+          push: (nodes) => headTags.push(nodes),
+        };
+
+        const appHtml = renderToString(
+          React.createElement(
+            HeadContext.Provider,
+            { value: headManager },
+            React.createElement(ArcanaJSApp, {
+              initialPage: page,
+              initialData: data,
+              initialParams: params,
+              initialUrl: req.path,
+              csrfToken: csrfToken,
+              views: views,
+              layout: layout,
+            })
+          )
+        );
+
+        const headHtml = renderToString(
+          React.createElement(React.Fragment, null, ...headTags)
+        );
+
+        getIndexHtml((err, htmlData) => {
+          if (err) {
+            console.error("Error reading index.html", err);
+            return res.status(500).send("Server Error");
+          }
+
+          const scriptContent = safeStringify({
+            page,
+            data,
+            params,
+            csrfToken,
+          });
+          const scriptTag = `<script id="__ArcanaJS_DATA__" type="application/json">${scriptContent}</script>`;
+
+          const html = htmlData
+            .replace("<!--HEAD_CONTENT-->", headHtml)
+            .replace("<!--APP_CONTENT-->", appHtml)
+            .replace("<!--ARCANAJS_DATA_SCRIPT-->", scriptTag);
+
+          res.send(html);
+        });
+      } catch (error) {
+        console.error("SSR Error:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    };
+    next();
+  };
+};

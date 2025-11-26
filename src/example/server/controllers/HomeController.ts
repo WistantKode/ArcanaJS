@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
 
 export default class HomeController {
+
   index(req: Request, res: Response) {
+    
     res.renderPage("HomePage", { title: "Welcome Home" });
   }
 
