@@ -1,6 +1,11 @@
 {
   "name": "arcanajs",
-  "version": "2.3.2",
+  "author": {
+    "name": "Mohammed Ben Cheikh",
+    "email": "mohammed.bencheikh.dev@gmail.com",
+    "url": "https://mohammedbencheikh.com/"
+  },
+  "version": "2.3.3",
   "description": "ArcanaJS Framework",
   "main": "framework/lib/index.js",
   "types": "framework/lib/index.d.ts",
@@ -75,5 +80,28 @@
     "webpack-cli": "^6.0.1",
     "webpack-node-externals": "^3.0.0",
     "ws": "^8.18.3"
-  }
+  },
+  "keywords": [
+    "arcanajs",
+    "framework",
+    "react",
+    "express",
+    "nodejs",
+    "typescript",
+    "javascript",
+    "web",
+    "server",
+    "client",
+    "routing",
+    "router"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/arcanajs/arcanajs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/arcanajs/arcanajs/issues"
+  },
+  "homepage": "https://arcanajs.com/",
+  "license": "MIT"
 }
