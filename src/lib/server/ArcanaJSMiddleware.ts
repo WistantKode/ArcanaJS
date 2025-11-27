@@ -22,11 +22,19 @@ const DEFAULT_HTML_TEMPLATE = `<!DOCTYPE html>
 declare global {
   namespace Express {
     interface Response {
+      /**
+       * Renders a React page using ArcanaJS SSR.
+       *
+       * @param page - The name of the page component to render.
+       * @param data - Initial data to pass to the page component (default: {}).
+       * @param params - Route parameters (default: {}).
+       * @returns The Express Response object.
+       */
       renderPage(
         page: string,
         data?: any,
         params?: Record<string, string>
-      ): void;
+      ): Response;
     }
   }
 }
@@ -118,19 +126,35 @@ export const createArcanaJSMiddleware = (options: ArcanaJSOptions) => {
             params,
             csrfToken,
           });
-          const scriptTag = `<script id="__ArcanaJS_DATA__" type="application/json">${scriptContent}</script>`;
+          const scriptTag = `<script id="__ARCANAJS_DATA__" type="application/json">${scriptContent}</script>`;
+
+          const hmrScript = process.env.ARCANA_HMR_PORT
+            ? `
+            <script>
+              (function() {
+                const socket = new WebSocket("ws://localhost:${process.env.ARCANA_HMR_PORT}");
+                socket.onmessage = function(event) {
+                  const data = JSON.parse(event.data);
+                  if (data.type === "reload") {
+                    window.location.reload();
+                  }
+                };
+              })();
+            </script>`
+            : "";
 
           const html = htmlData
             .replace("<!--HEAD_CONTENT-->", headHtml)
             .replace("<!--APP_CONTENT-->", appHtml)
-            .replace("<!--ARCANAJS_DATA_SCRIPT-->", scriptTag);
+            .replace("<!--ARCANAJS_DATA_SCRIPT-->", scriptTag + hmrScript);
 
           res.send(html);
         });
       } catch (error) {
         console.error("SSR Error:", error);
-        res.status(500).send("Internal Server Error");
+        return res.status(500).send("Internal Server Error");
       }
+      return res;
     };
     next();
   };

@@ -1,10 +1,11 @@
 import { Express } from "express";
-import { ArcanaJSServer, ArcanaJSConfig } from "./server/ArcanaJSServer";
+import { ArcanaJSConfig, ArcanaJSServer } from "./server/ArcanaJSServer";
 
 export * from "./server/ArcanaJSMiddleware";
 export * from "./server/ArcanaJSServer";
 export { default as ControllerBinder } from "./server/ControllerBinder";
 export * from "./server/DynamicRouter";
+export * from "./server/ResponseHandlerMiddleware";
 export * from "./server/Router";
 export { default as Route } from "./server/Router";
 
@@ -16,7 +17,7 @@ export { default as Route } from "./server/Router";
  */
 export function createArcanaServer(
   app: Express,
-  config?: Partial<ArcanaJSConfig>,
+  config?: Partial<ArcanaJSConfig>
 ): ArcanaJSServer {
   const server = new ArcanaJSServer({ ...config });
   return server;

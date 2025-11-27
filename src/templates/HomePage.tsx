@@ -275,6 +275,12 @@ export default function HomePage() {
                   <div className="bg-black/50 rounded-xl p-6 text-sm font-mono text-gray-300 overflow-x-auto border border-white/10 shadow-inner">
                     <div className="mb-4">
                       <div className="text-gray-500 mb-1">
+                        # Create a new folder
+                      </div>
+                      <div className="text-orange-400">mkdir my-app cd my-app</div>
+                    </div>
+                    <div className="mb-4">  
+                      <div className="text-gray-500 mb-1">
                         # Initialize a new project
                       </div>
                       <div className="text-orange-400">npx arcanajs init</div>
@@ -283,7 +289,7 @@ export default function HomePage() {
                       <div className="text-gray-500 mb-1">
                         # Install dependencies
                       </div>
-                      <div className="text-orange-400">npm install</div>
+                      <div className="text-white">npm install</div>
                     </div>
                     <div className="mb-4">
                       <div className="text-gray-500 mb-1">
@@ -296,6 +302,12 @@ export default function HomePage() {
                         # Build for production
                       </div>
                       <div className="text-white">npm run build</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-500 mb-1">
+                        # Start production server
+                      </div>
+                      <div className="text-white">npm start</div>
                     </div>
                   </div>
                 </section>

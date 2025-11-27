@@ -47,7 +47,7 @@ const findEntry = (searchPaths: string[]): string => {
     return exampleServer;
 
   throw new Error(
-    `Could not find entry point. Searched in: ${searchPaths.join(", ")}`,
+    `Could not find entry point. Searched in: ${searchPaths.join(", ")}`
   );
 };
 
@@ -56,7 +56,7 @@ const getViewsLoaderPath = () => {
   const hasViews = fs.existsSync(viewsDir);
   const viewsLoaderPath = path.resolve(
     __dirname,
-    "../../node_modules/.cache/arcanajs/views-loader.js",
+    "../../node_modules/.cache/arcanajs/views-loader.js"
   );
 
   // Ensure cache directory exists
@@ -183,13 +183,29 @@ export const createClientConfig = (): webpack.Configuration => {
       splitChunks: {
         chunks: "all",
         cacheGroups: {
-          vendor: {
+          defaultVendors: {
             test: /[\\/]node_modules[\\/]/,
-            name: "vendors",
+            priority: -10,
+            reuseExistingChunk: true,
+          },
+          default: {
+            minChunks: 2,
+            priority: -20,
+            reuseExistingChunk: true,
+          },
+          react: {
+            test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
+            name: "react-vendor",
             chunks: "all",
+            priority: 10,
           },
         },
       },
+    },
+    performance: {
+      maxEntrypointSize: 512000,
+      maxAssetSize: 512000,
+      hints: isProduction ? "warning" : false,
     },
     devtool: isProduction ? "source-map" : "eval-source-map",
   };

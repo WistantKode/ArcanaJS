@@ -1,4 +1,4 @@
-import { hydrateArcanaJS } from "arcanajs";
+import { hydrateArcanaJS } from "arcanajs/client";
 import "./globals.css";
 
 // @ts-ignore

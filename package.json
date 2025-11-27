@@ -5,8 +5,18 @@
   "main": "framework/lib/index.js",
   "types": "framework/lib/index.d.ts",
   "exports": {
-    ".": "./framework/lib/index.js",
-    "./server": "./framework/lib/server.js"
+    ".": {
+      "types": "./framework/lib/index.d.ts",
+      "default": "./framework/lib/index.js"
+    },
+    "./server": {
+      "types": "./framework/lib/server.d.ts",
+      "default": "./framework/lib/server.js"
+    },
+    "./client": {
+      "types": "./framework/lib/client/index.d.ts",
+      "default": "./framework/lib/client/index.js"
+    }
   },
   "bin": {
     "arcanajs": "./bin/arcanajs.js"
@@ -16,46 +26,45 @@
     "bin"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json && cp src/lib/server/default-index.html framework/lib/server/ && cp src/lib/global.d.ts framework/lib/ && cp -r src/templates framework/",
+    "build": "tsc -p tsconfig.json && cp src/lib/server/default-index.html framework/lib/server/ && cp src/lib/global.d.ts framework/lib/ && cp -r src/templates framework/"
   },
   "dependencies": {
-    "compression": "^1.8.1",
-    "cookie-parser": "^1.4.7",
-    "cross-env": "^10.1.0",
-    "express": "^5.1.0",
-    "helmet": "^8.1.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
     "@babel/core": "^7.23.0",
     "@babel/preset-env": "^7.23.0",
     "@babel/preset-react": "^7.22.15",
     "@babel/preset-typescript": "^7.23.0",
     "@tailwindcss/postcss": "^4.1.17",
+    "@types/compression": "^1.8.1",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^5.0.5",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@types/ws": "^8.18.1",
     "autoprefixer": "^10.4.22",
     "babel-loader": "^10.0.0",
     "clean-webpack-plugin": "^4.0.0",
-    "concurrently": "^9.2.1",
+    "compression": "^1.8.1",
+    "cookie-parser": "^1.4.7",
+    "cross-env": "^10.1.0",
     "css-loader": "^7.1.2",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
     "html-webpack-plugin": "^5.6.5",
     "mini-css-extract-plugin": "^2.9.4",
     "null-loader": "^4.0.1",
     "postcss": "^8.5.6",
     "postcss-loader": "^8.2.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "style-loader": "^4.0.0",
     "tailwindcss": "^4.1.17",
-    "ts-loader": "^9.4.4",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "webpack": "^5.103.0",
     "webpack-cli": "^6.0.1",
     "webpack-node-externals": "^3.0.0",
-    "@types/express": "^5.0.5",
-    "@types/node": "^24.10.1",
-    "@types/compression": "^1.8.1",
-    "@types/cookie-parser": "^1.4.10",
-    "@types/react": "^19.2.7",
-    "@types/react-dom": "^19.2.3"
-  },
-  "devDependencies": {}
+    "ws": "^8.18.3"
+  }
 }

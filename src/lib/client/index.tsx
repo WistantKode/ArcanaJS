@@ -7,7 +7,7 @@ import NotFoundPage from "../shared/views/NotFoundPage";
 
 export const hydrateArcanaJS = (
   viewsOrContext: Record<string, React.FC<any>> | any,
-  layout?: React.FC<any>,
+  layout?: React.FC<any>
 ) => {
   let views: Record<string, React.FC<any>> = {};
 
@@ -29,7 +29,7 @@ export const hydrateArcanaJS = (
   }
 
   const container = document.getElementById("root");
-  const dataScript = document.getElementById("__ArcanaJS_DATA__");
+  const dataScript = document.getElementById("__ARCANAJS_DATA__");
 
   // Client-side HeadManager (noop for push, as Head handles client updates via useEffect)
   const headManager: HeadManager = {
@@ -40,7 +40,7 @@ export const hydrateArcanaJS = (
   if (container && dataScript) {
     try {
       const { page, data, params, csrfToken } = JSON.parse(
-        dataScript.textContent || "{}",
+        dataScript.textContent || "{}"
       );
       hydrateRoot(
         container,
@@ -53,7 +53,7 @@ export const hydrateArcanaJS = (
             views={views}
             layout={layout}
           />
-        </HeadContext.Provider>,
+        </HeadContext.Provider>
       );
     } catch (e) {
       console.error("Failed to parse initial data", e);

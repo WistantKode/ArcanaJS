@@ -2,6 +2,7 @@ import { spawn } from "child_process";
 import fs from "fs";
 import path from "path";
 import webpack from "webpack";
+import { configFiles, errorPages, requiredDirs } from "./templates";
 import { createClientConfig, createServerConfig } from "./webpack.config";
 
 const args = process.argv.slice(2);
@@ -31,24 +32,38 @@ const runCompiler = (compiler: webpack.Compiler) => {
 
 let serverProcess: ReturnType<typeof spawn> | null = null;
 
-const startDevServer = () => {
-  if (serverProcess) {
-    serverProcess.kill();
-  }
+import { WebSocketServer } from "ws";
 
-  const serverPath = path.resolve(process.cwd(), "dist/server.js");
-  serverProcess = spawn("node", [serverPath], { stdio: "inherit" });
-
-  serverProcess.on("close", (code) => {
-    if (code !== 0 && code !== null) {
-      console.error(`Dev server exited with code ${code}`);
+const startDevServer = (hmrPort: number): Promise<void> => {
+  return new Promise((resolve) => {
+    if (serverProcess) {
+      serverProcess.kill();
     }
+
+    const serverPath = path.resolve(process.cwd(), "dist/server.js");
+    serverProcess = spawn("node", [serverPath], {
+      stdio: ["inherit", "pipe", "inherit"],
+      env: { ...process.env, ARCANA_HMR_PORT: hmrPort.toString() },
+    });
+
+    serverProcess.stdout?.on("data", (data) => {
+      process.stdout.write(data);
+      if (data.toString().includes("Server is running")) {
+        resolve();
+      }
+    });
+
+    serverProcess.on("close", (code) => {
+      if (code !== 0 && code !== null) {
+        console.error(`Dev server exited with code ${code}`);
+      }
+    });
   });
 };
 
 const watchCompiler = (
   compiler: webpack.Compiler,
-  onBuildComplete?: () => void,
+  onBuildComplete?: () => void
 ) => {
   compiler.watch({}, (err, stats) => {
     if (err) {
@@ -84,16 +99,52 @@ const dev = async () => {
   process.env.NODE_ENV = "development";
   console.log("Starting development server...");
 
+  // Start HMR WebSocket Server
+  const HMR_PORT = 3001;
+  const wss = new WebSocketServer({ port: HMR_PORT });
+  console.log(`HMR Server running on port ${HMR_PORT}`);
+
+  const broadcastReload = () => {
+    wss.clients.forEach((client) => {
+      if (client.readyState === 1) {
+        client.send(JSON.stringify({ type: "reload" }));
+      }
+    });
+  };
+
   const clientConfig = createClientConfig();
   const serverConfig = createServerConfig();
 
+  let isServerBuilding = false;
+  let pendingReload = false;
+
+  const serverCompiler = webpack(serverConfig);
+  serverCompiler.hooks.invalid.tap("ArcanaJS", () => {
+    isServerBuilding = true;
+  });
+
   // Watch client
-  watchCompiler(webpack(clientConfig));
+  watchCompiler(webpack(clientConfig), () => {
+    console.log("Client build complete.");
+    if (isServerBuilding) {
+      console.log("Server is building. Waiting to reload...");
+      pendingReload = true;
+    } else {
+      console.log("Reloading browsers...");
+      broadcastReload();
+    }
+  });
 
   // Watch server and restart on build
-  watchCompiler(webpack(serverConfig), () => {
+  watchCompiler(serverCompiler, async () => {
     console.log("Server build complete. Restarting server...");
-    startDevServer();
+    await startDevServer(HMR_PORT);
+    isServerBuilding = false;
+    if (pendingReload) {
+      console.log("Pending reload found. Reloading browsers...");
+      broadcastReload();
+      pendingReload = false;
+    }
   });
 };
 
@@ -104,73 +155,32 @@ const init = () => {
   const templatesDir = path.resolve(__dirname, "../templates");
 
   // Create necessary directories
-  const publicDir = path.resolve(cwd, "public");
-  const srcDir = path.resolve(cwd, "src");
-  const clientDir = path.resolve(cwd, "src/client");
-  const serverDir = path.resolve(cwd, "src/server");
-  const routesDir = path.resolve(cwd, "src/server/routes");
-  const controllersDir = path.resolve(cwd, "src/server/controllers");
-  const viewsDir = path.resolve(cwd, "src/views");
-
-  [
-    publicDir,
-    srcDir,
-    clientDir,
-    serverDir,
-    routesDir,
-    controllersDir,
-    viewsDir,
-  ].forEach((dir) => {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-      console.log(`Created directory: ${path.relative(cwd, dir)}`);
+  requiredDirs.forEach((dir) => {
+    const fullPath = path.resolve(cwd, dir);
+    if (!fs.existsSync(fullPath)) {
+      fs.mkdirSync(fullPath, { recursive: true });
+      console.log(`Created directory: ${dir}`);
     }
   });
 
   // Copy configuration files
-  const configFiles = [
-    { src: "package.json", dest: "package.json" },
-    { src: "postcss.config.js", dest: "postcss.config.js" },
-    { src: "globals.css", dest: "src/client/globals.css" },
-    { src: "client-index.tsx", dest: "src/client/index.tsx" },
-    { src: "server-index.ts", dest: "src/server/index.ts" },
-    { src: "server-routes-web.ts", dest: "src/server/routes/web.ts" },
-    {
-      src: "server-controller-home.ts",
-      dest: "src/server/controllers/HomeController.ts",
-    },
-    {
-      src: "HomePage.tsx",
-      dest: "src/views/HomePage.tsx",
-    },
-    {
-      src: "arcanajs.png",
-      dest: "public/arcanajs.png",
-    },
-    {
-      src: "arcanajs.svg",
-      dest: "public/arcanajs.svg",
-    },
-    {
-      src: "favicon.ico",
-      dest: "public/favicon.ico",
-    },
-  ];
-
   configFiles.forEach(({ src, dest }) => {
     const srcPath = path.resolve(templatesDir, src);
     const destPath = path.resolve(cwd, dest);
 
     if (!fs.existsSync(destPath)) {
-      fs.copyFileSync(srcPath, destPath);
-      console.log(`Created: ${dest}`);
+      if (fs.existsSync(srcPath)) {
+        fs.copyFileSync(srcPath, destPath);
+        console.log(`Created: ${dest}`);
+      } else {
+        console.warn(`Template not found: ${src}`);
+      }
     } else {
       console.log(`Skipped: ${dest} (already exists)`);
     }
   });
 
   // Create default error pages
-  const errorPages = ["NotFoundPage.tsx", "ErrorPage.tsx"];
   errorPages.forEach((page) => {
     const viewPath = path.resolve(cwd, `src/views/${page}`);
     const templatePath = path.resolve(templatesDir, page);
@@ -183,11 +193,12 @@ const init = () => {
 
   console.log("\n✅ ArcanaJS project initialized successfully!");
   console.log("\nNext steps:");
-  console.log("1. Run 'npm run dev' to start development");
-  console.log("2. Visit http://localhost:3000 to see your app");
-  console.log("3. Edit src/views/HomePage.tsx to customize your homepage");
-  console.log("4. Customize your theme in src/client/globals.css");
-  console.log("5. Add your Tailwind classes and enjoy!");
+  console.log("1. Run 'npm install' to install dependencies");
+  console.log("2. Run 'npm run dev' to start development");
+  console.log("3. Visit http://localhost:3000 to see your app");
+  console.log("4. Edit src/views/HomePage.tsx to customize your homepage");
+  console.log("5. Customize your theme in src/client/globals.css");
+  console.log("6. Add your Tailwind classes and enjoy!");
 };
 
 const start = () => {
