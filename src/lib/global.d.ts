@@ -2,7 +2,7 @@
 // Webpack Global Variables
 // ============================================================================
 
-declare var __non_webpack_require__: NodeRequire;
+declare var __non_webpack_require__: NodeJS.Require;
 
 // ============================================================================
 // CSS Module Declarations

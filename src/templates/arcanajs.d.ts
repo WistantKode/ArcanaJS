@@ -1,4 +1,4 @@
-declare var __non_webpack_require__: NodeRequire;
+declare var __non_webpack_require__: NodeJS.Require;
 
 // Global CSS files
 declare module "*.css";
