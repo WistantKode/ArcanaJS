@@ -11,6 +11,17 @@ import NotFoundPage from "../shared/views/NotFoundPage";
 
 export type { LayoutComponent, ViewsRegistry } from "../types";
 
+/**
+ * Navigation options for configuring ArcanaJS behavior
+ */
+export interface NavigationOptions {
+  /**
+   * Callback function called after each successful navigation
+   * Useful for analytics, logging, or custom scroll behavior
+   */
+  onNavigate?: (url: string) => void;
+}
+
 // ============================================================================
 // Client Hydration Function
 // ============================================================================
@@ -23,6 +34,7 @@ export type { LayoutComponent, ViewsRegistry } from "../types";
  *
  * @param viewsOrContext - Either a views registry object or a webpack require.context
  * @param layout - Optional layout component to wrap all pages
+ * @param options - Optional navigation configuration options
  *
  * @example
  * ```typescript
@@ -45,10 +57,25 @@ export type { LayoutComponent, ViewsRegistry } from "../types";
  *   AboutPage,
  * });
  * ```
+ *
+ * @example
+ * ```typescript
+ * // With navigation options
+ * import { hydrateArcanaJS } from 'arcanajs/client';
+ *
+ * const views = require.context('./views', false, /\.tsx$/);
+ * hydrateArcanaJS(views, undefined, {
+ *   onNavigate: (url) => {
+ *     // Track page views
+ *     gtag('event', 'page_view', { page_path: url });
+ *   }
+ * });
+ * ```
  */
 export const hydrateArcanaJS = (
   viewsOrContext: Record<string, React.FC<any>> | any,
-  layout?: React.FC<any>
+  layout?: React.FC<any>,
+  options?: NavigationOptions
 ) => {
   let views: Record<string, React.FC<any>> = {};
 
@@ -93,6 +120,7 @@ export const hydrateArcanaJS = (
             csrfToken={csrfToken}
             views={views}
             layout={layout}
+            onNavigate={options?.onNavigate || (() => {})}
           />
         </HeadContext.Provider>
       );

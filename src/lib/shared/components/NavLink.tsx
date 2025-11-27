@@ -1,11 +1,12 @@
 import React from "react";
-import { Link } from "./Link";
 import { useRouter } from "../hooks/useRouter";
+import { Link } from "./Link";
 
 interface NavLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   href: string;
   activeClassName?: string;
   exact?: boolean;
+  prefetch?: boolean;
 }
 
 export const NavLink: React.FC<NavLinkProps> = ({
@@ -13,6 +14,7 @@ export const NavLink: React.FC<NavLinkProps> = ({
   activeClassName = "active",
   className = "",
   exact = false,
+  prefetch = false,
   children,
   ...props
 }) => {
@@ -25,7 +27,12 @@ export const NavLink: React.FC<NavLinkProps> = ({
   }`.trim();
 
   return (
-    <Link href={href} className={combinedClassName} {...props}>
+    <Link
+      href={href}
+      className={combinedClassName}
+      prefetch={prefetch}
+      {...props}
+    >
       {children}
     </Link>
   );

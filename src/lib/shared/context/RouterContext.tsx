@@ -7,6 +7,8 @@ export interface RouterContextType {
   currentUrl: string;
   params: Record<string, string>;
   csrfToken?: string;
+  onNavigate?: (url: string) => void;
+  isNavigating: boolean;
 }
 
 export const RouterContext = createSingletonContext<RouterContextType | null>(
