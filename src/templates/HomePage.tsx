@@ -1,4 +1,4 @@
-import { Page, Head, Body } from "arcanajs";
+import { Body, Head, Page } from "arcanajs";
 
 export default function HomePage() {
   return (
@@ -304,7 +304,7 @@ export default function HomePage() {
                       </div>
                       <div className="text-white">npm run build</div>
                     </div>
-                    <div className="mb-4">  
+                    <div className="mb-4">
                       <div className="text-gray-500 mb-1">
                         # Start production server
                       </div>
