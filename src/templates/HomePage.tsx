@@ -298,13 +298,13 @@ export default function HomePage() {
                       </div>
                       <div className="text-white">npm run dev</div>
                     </div>
-                    <div>
+                    <div className="mb-4">
                       <div className="text-gray-500 mb-1">
                         # Build for production
                       </div>
                       <div className="text-white">npm run build</div>
                     </div>
-                    <div>
+                    <div className="mb-4">  
                       <div className="text-gray-500 mb-1">
                         # Start production server
                       </div>
