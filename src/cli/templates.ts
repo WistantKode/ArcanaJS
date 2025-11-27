@@ -1,5 +1,7 @@
 export const configFiles = [
   { src: "package.json", dest: "package.json" },
+  { src: "tsconfig.json", dest: "tsconfig.json" },
+  { src: "arcanajs.d.ts", dest: "src/arcanajs.d.ts" },
   { src: "postcss.config.js", dest: "postcss.config.js" },
   { src: "globals.css", dest: "src/client/globals.css" },
   { src: "client-index.tsx", dest: "src/client/index.tsx" },

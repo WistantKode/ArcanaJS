@@ -5,6 +5,47 @@ import { ArcanaJSApp } from "../shared/core/ArcanaJSApp";
 import ErrorPage from "../shared/views/ErrorPage";
 import NotFoundPage from "../shared/views/NotFoundPage";
 
+// ============================================================================
+// Type Exports
+// ============================================================================
+
+export type { LayoutComponent, ViewsRegistry } from "../types";
+
+// ============================================================================
+// Client Hydration Function
+// ============================================================================
+
+/**
+ * Hydrate the ArcanaJS application on the client side
+ *
+ * This function initializes the React application on the client,
+ * hydrating the server-rendered HTML with client-side interactivity.
+ *
+ * @param viewsOrContext - Either a views registry object or a webpack require.context
+ * @param layout - Optional layout component to wrap all pages
+ *
+ * @example
+ * ```typescript
+ * // Using webpack require.context (recommended)
+ * import { hydrateArcanaJS } from 'arcanajs/client';
+ *
+ * const views = require.context('./views', false, /\.tsx$/);
+ * hydrateArcanaJS(views);
+ * ```
+ *
+ * @example
+ * ```typescript
+ * // Using manual views registry
+ * import { hydrateArcanaJS } from 'arcanajs/client';
+ * import HomePage from './views/HomePage';
+ * import AboutPage from './views/AboutPage';
+ *
+ * hydrateArcanaJS({
+ *   HomePage,
+ *   AboutPage,
+ * });
+ * ```
+ */
 export const hydrateArcanaJS = (
   viewsOrContext: Record<string, React.FC<any>> | any,
   layout?: React.FC<any>

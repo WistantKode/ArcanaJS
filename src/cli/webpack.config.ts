@@ -126,8 +126,39 @@ export const createClientConfig = (): webpack.Configuration => {
             },
           },
         },
+        // CSS Modules rule for .module.css files
+        {
+          test: /\.module\.css$/,
+          use: [
+            isProduction
+              ? MiniCssExtractPlugin.loader
+              : resolveLoader("style-loader"),
+            {
+              loader: resolveLoader("css-loader"),
+              options: {
+                importLoaders: 1,
+                modules: {
+                  localIdentName: isProduction
+                    ? "[hash:base64:8]"
+                    : "[path][name]__[local]--[hash:base64:5]",
+                  exportLocalsConvention: "camelCaseOnly",
+                },
+              },
+            },
+            {
+              loader: resolveLoader("postcss-loader"),
+              options: {
+                postcssOptions: {
+                  config: path.resolve(cwd, "postcss.config.js"),
+                },
+              },
+            },
+          ],
+        },
+        // Global CSS rule for regular .css files
         {
           test: /\.css$/,
+          exclude: /\.module\.css$/,
           use: [
             isProduction
               ? MiniCssExtractPlugin.loader
@@ -262,9 +293,27 @@ export const createServerConfig = (): webpack.Configuration => {
             },
           },
         },
+        // CSS Modules rule for .module.css files on server (for SSR)
+        {
+          test: /\.module\.css$/,
+          use: {
+            loader: resolveLoader("css-loader"),
+            options: {
+              modules: {
+                localIdentName: isProduction
+                  ? "[hash:base64:8]"
+                  : "[path][name]__[local]--[hash:base64:5]",
+                exportLocalsConvention: "camelCaseOnly",
+                exportOnlyLocals: true, // Only export class names, not CSS
+              },
+            },
+          },
+        },
+        // Regular CSS files - ignore on server side
         {
           test: /\.css$/,
-          use: resolveLoader("null-loader"), // Ignore CSS on server side
+          exclude: /\.module\.css$/,
+          use: resolveLoader("null-loader"),
         },
         {
           test: /\.(png|jpg|jpeg|gif|svg|woff|woff2|eot|ttf|otf)$/i,
@@ -275,6 +324,6 @@ export const createServerConfig = (): webpack.Configuration => {
         },
       ],
     },
-    // devtool: isProduction ? "source-map" : "eval-source-map",
+    devtool: isProduction ? "source-map" : "eval-source-map",
   };
 };
