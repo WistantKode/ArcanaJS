@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response } from "arcanajs/server";
 
 /**
  * UsersController - example controller for users endpoints.

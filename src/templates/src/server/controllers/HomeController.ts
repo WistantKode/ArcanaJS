@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response } from "arcanajs/server";
 
 export default class HomeController {
   home(req: Request, res: Response) {

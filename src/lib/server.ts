@@ -1,6 +1,10 @@
 import { Express } from "express";
 import { ArcanaJSConfig, ArcanaJSServer } from "./server/ArcanaJSServer";
 
+// Re-export commonly used Express types so consumers can import from
+// `arcanajs/server` instead of importing directly from `express`.
+export type { NextFunction, Request, RequestHandler, Response } from "express";
+
 // ============================================================================
 // Server Core Exports
 // ============================================================================
