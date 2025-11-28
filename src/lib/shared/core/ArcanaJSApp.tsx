@@ -83,7 +83,7 @@ export const ArcanaJSApp: React.FC<ArcanaJSAppProps> = ({
     setIsNavigating(true);
     try {
       const response = await fetch(newUrl, {
-        headers: { "x-arcanajs-request": "true" },
+        headers: { "X-ArcanaJS-Request": "true" },
       });
 
       if (!response.ok) {
