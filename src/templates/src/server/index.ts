@@ -20,10 +20,13 @@ const server = new ArcanaJSServer({
   // Example: provide a dbConnect function that returns the DB client/connection.
   // You can connect to MySQL/Postgres/MongoDB here and return the client.
   // dbConnect: async () => {
-  //   const { MongoClient } = await import('mongodb');
-  //   const client = new MongoClient(process.env.MONGO_URL || 'mongodb://localhost:27017');
-  //   await client.connect();
-  //   return client.db('mydb');
+  // const { MongoClient } = await import("mongodb");
+  // const url = process.env.MONGO_URL || "mongodb://localhost:27017";
+  // const dbName = process.env.MONGO_DB || "mydb";
+  // const client = new MongoClient(url);
+  // await client.connect();
+  // const db = client.db(dbName);
+  // return { client, db };
   // },
   // Or use one of the provided DB templates (uncomment one):
   // dbConnect: mongoDb,
