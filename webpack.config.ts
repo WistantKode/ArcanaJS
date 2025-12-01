@@ -8,7 +8,8 @@ const config: webpack.Configuration = {
   mode: "production",
   target: "node",
   entry: {
-    arcanajs: path.resolve(cwd, "src/lib/index.ts"),
+    arcanajs: path.resolve(cwd, "src/lib/index.server.ts"),
+    arcanox: path.resolve(cwd, "src/lib/index.arcanox.ts"),
     "arcanajs.client": path.resolve(cwd, "src/lib/index.client.ts"),
     "cli/index": path.resolve(cwd, "src/cli/index.ts"),
   },

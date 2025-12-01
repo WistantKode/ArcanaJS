@@ -2,36 +2,11 @@ import { Express } from "express";
 import ArcanaJSServer, { ArcanaJSConfig } from "./server/ArcanaJSServer";
 
 // ============================================================================
-// Component Exports
-// ============================================================================
-
-export { default as Body } from "./shared/components/Body";
-export { default as Head } from "./shared/components/Head";
-export { default as Link } from "./shared/components/Link";
-export { default as NavLink } from "./shared/components/NavLink";
-export { default as Page } from "./shared/components/Page";
-
-// ============================================================================
-// Client Exports
-// ============================================================================
-
-export { default as hydrateArcanaJS } from "./client/index";
-
-// ============================================================================
-// Hook Exports
-// ============================================================================
-
-export { default as useLocation } from "./shared/hooks/useLocation";
-export { default as usePage } from "./shared/hooks/usePage";
-export { default as useParams } from "./shared/hooks/useParams";
-export { default as useQuery } from "./shared/hooks/useQuery";
-export { default as useRouter } from "./shared/hooks/useRouter";
-
-// ============================================================================
 // Server Core Exports
 // ============================================================================
 
 export { default as ArcanaJSServer } from "./server/ArcanaJSServer";
+export { Container } from "./server/Container";
 
 export { Express, NextFunction, Request, Response } from "express";
 
@@ -39,7 +14,13 @@ export { Express, NextFunction, Request, Response } from "express";
 // Routing Exports
 // ============================================================================
 
+export { FormRequest } from "./server/http/FormRequest";
+export { JsonResource } from "./server/http/JsonResource";
+export type { Middleware } from "./server/http/Middleware";
 export { default as Route } from "./server/Router";
+export { ServiceProvider } from "./server/support/ServiceProvider";
+export { ValidationException } from "./server/validation/ValidationException";
+export { Validator } from "./server/validation/Validator";
 
 // ============================================================================
 // Server Factory Function

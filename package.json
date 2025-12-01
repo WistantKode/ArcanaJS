@@ -8,28 +8,20 @@
   "version": "3.0.1",
   "description": "ArcanaJS Framework",
   "main": "./dist/arcanajs.js",
-  "types": "./dist/lib/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.json --emitDeclarationOnly && webpack --config webpack.config.ts && cp src/lib/global.d.ts dist/lib/"
+    "build": "tsc -p tsconfig.json --emitDeclarationOnly && webpack --config webpack.config.ts"
   },
   "exports": {
-    ".": {
-      "browser": {
-        "types": "./dist/lib/index.client.d.ts",
-        "default": "./dist/arcanajs.client.js"
-      },
-      "node": {
-        "types": "./dist/lib/index.d.ts",
-        "default": "./dist/arcanajs.js"
-      },
-      "default": "./dist/arcanajs.js"
+    "./arcanox": {
+      "types": "./dist/lib/index.arcanox.d.ts",
+      "default": "./dist/arcanox.js"
     },
     "./client": {
       "types": "./dist/lib/index.client.d.ts",
       "default": "./dist/arcanajs.client.js"
     },
     "./server": {
-      "types": "./dist/lib/index.d.ts",
+      "types": "./dist/lib/index.server.d.ts",
       "default": "./dist/arcanajs.js"
     }
   },
@@ -43,6 +35,20 @@
   "peerDependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "pg": {
+      "optional": true
+    },
+    "mysql2": {
+      "optional": true
+    },
+    "@faker-js/faker": {
+      "optional": true
+    },
+    "mongodb": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@babel/core": "^7.23.0",
@@ -71,6 +77,7 @@
     "null-loader": "^4.0.1",
     "postcss": "^8.5.6",
     "postcss-loader": "^8.2.0",
+    "reflect-metadata": "^0.2.2",
     "style-loader": "^4.0.0",
     "tailwindcss": "^4.1.17",
     "ts-node": "^10.9.2",
@@ -82,7 +89,12 @@
     "ws": "^8.18.3"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.1.0",
+    "@types/pg": "^8.15.6",
     "@types/webpack-node-externals": "^3.0.4",
+    "mongodb": "^7.0.0",
+    "mysql2": "^3.15.3",
+    "pg": "^8.16.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

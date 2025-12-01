@@ -1,5 +1,6 @@
 import express, { Router as ExpressRouter, RequestHandler } from "express";
 import ControllerBinder from "./ControllerBinder";
+import MiddlewareBinder from "./MiddlewareBinder";
 
 /**
  * Provides Routing syntax for defining routes with prefixes, middlewares, and groups
@@ -25,9 +26,15 @@ export class Router {
   /**
    * Add middleware to the current stack
    */
-  middleware(...middleware: RequestHandler[]): Router {
+  middleware(...middleware: any[]): Router {
     const newRouter = this._clone();
-    newRouter.middlewareStack = [...this.middlewareStack, ...middleware];
+    const resolvedMiddlewares = middleware.map((m) =>
+      this._resolveMiddleware(m)
+    );
+    newRouter.middlewareStack = [
+      ...this.middlewareStack,
+      ...resolvedMiddlewares,
+    ];
     return newRouter;
   }
 
@@ -106,6 +113,22 @@ export class Router {
   }
 
   /**
+   * Define a resource route
+   * Registers index, create, store, show, edit, update, destroy routes
+   */
+  resource(path: string, controller: any): Router {
+    this.get(path, controller, "index");
+    this.get(`${path}/create`, controller, "create");
+    this.post(path, controller, "store");
+    this.get(`${path}/:id`, controller, "show");
+    this.get(`${path}/:id/edit`, controller, "edit");
+    this.put(`${path}/:id`, controller, "update");
+    this.patch(`${path}/:id`, controller, "update");
+    this.delete(`${path}/:id`, controller, "destroy");
+    return this;
+  }
+
+  /**
    * Get the underlying Express router
    */
   getRouter(): ExpressRouter {
@@ -141,11 +164,47 @@ export class Router {
   ): Router {
     const fullPath = this._buildPath(path);
     const handler = this._buildHandler(action);
-    const flatMiddlewares = routeMiddlewares.flat(Infinity) as RequestHandler[];
-    const middlewares = [...this.middlewareStack, ...flatMiddlewares, handler];
+    const flatMiddlewares = routeMiddlewares.flat(Infinity);
+    const resolvedMiddlewares = flatMiddlewares.map((m) =>
+      this._resolveMiddleware(m)
+    );
+    const middlewares = [
+      ...this.middlewareStack,
+      ...resolvedMiddlewares,
+      handler,
+    ];
 
     this.router[method](fullPath, ...middlewares);
     return this;
+  }
+
+  /**
+   * Resolve middleware to RequestHandler
+   */
+  private _resolveMiddleware(middleware: any): RequestHandler {
+    if (typeof middleware === "function" && !middleware.prototype?.handle) {
+      // It's a standard express middleware function
+      return middleware;
+    }
+
+    if (Array.isArray(middleware) && middleware.length === 2) {
+      // It's [MiddlewareClass, 'method']
+      const [middlewareClass, method] = middleware;
+      return MiddlewareBinder.handle(middlewareClass, method);
+    }
+
+    if (
+      typeof middleware === "function" ||
+      (typeof middleware === "object" && middleware !== null)
+    ) {
+      // It's a Middleware Class (constructor) or instance
+      // Default to 'handle' method
+      return MiddlewareBinder.handle(middleware, "handle");
+    }
+
+    throw new Error(
+      "Invalid middleware. Must be a function, [Class, 'method'], or Class."
+    );
   }
 
   /**
@@ -191,7 +250,7 @@ export class Route {
     return Router.create();
   }
 
-  static middleware(...middleware: RequestHandler[]): Router {
+  static middleware(...middleware: any[]): Router {
     return this._router.middleware(...middleware);
   }
 

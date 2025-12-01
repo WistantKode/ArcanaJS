@@ -3,6 +3,11 @@ import path from "path";
 import webpack from "webpack";
 import { createClientConfig, createServerConfig } from "./webpack.config";
 
+declare module "webpack-node-externals";
+declare global {
+  var __non_webpack_require__: NodeJS.Require;
+}
+
 const args = process.argv.slice(2);
 const command = args[0];
 
@@ -158,6 +163,10 @@ const start = () => {
   });
 };
 
+import { handleDb } from "./commands/db";
+import { handleMake } from "./commands/make";
+import { handleMigrate } from "./commands/migrate";
+
 switch (command) {
   case "build":
     build();
@@ -169,6 +178,14 @@ switch (command) {
     start();
     break;
   default:
-    console.error(`Unknown command: ${command}`);
-    process.exit(1);
+    if (command.startsWith("make:")) {
+      handleMake(args);
+    } else if (command.startsWith("migrate")) {
+      handleMigrate(args);
+    } else if (command.startsWith("db:")) {
+      handleDb(args);
+    } else {
+      console.error(`Unknown command: ${command}`);
+      process.exit(1);
+    }
 }

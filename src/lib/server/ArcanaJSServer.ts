@@ -12,6 +12,8 @@ import { createCsrfMiddleware } from "./CsrfMiddleware";
 import { createDynamicRouter } from "./DynamicRouter";
 import { responseHandler } from "./ResponseHandlerMiddleware";
 
+import { ServiceProvider } from "./support/ServiceProvider";
+
 export interface ArcanaJSConfig<TDb = any> {
   port?: number | string;
   views?: Record<string, React.FC<any>>;
@@ -30,117 +32,98 @@ export interface ArcanaJSConfig<TDb = any> {
   dbConnect?: () => Promise<TDb> | TDb;
   /** Automatically register SIGINT/SIGTERM handlers to call stop(). Default: true */
   autoHandleSignals?: boolean;
+  /** Service providers to load */
+  providers?: (new (app: ArcanaJSServer) => ServiceProvider)[];
 }
 
 declare global {
   namespace Express {
-    interface Request {
+    interface Response {
       /**
-       * Normalized DB object optionally attached to the request by ArcanaJSServer.
-       * It may be either the raw client, or an object like `{ client, db, close }`.
+       * Sends a success response with a standard format.
+       *
+       * @param data - The data payload to include in the response (default: {}).
+       * @param message - A descriptive message for the success (default: "Success").
+       * @param status - The HTTP status code to return (default: 200).
+       * @returns The Express Response object.
        */
-      db?: any;
+      success: (
+        data?: string | object | null,
+        message?: string,
+        status?: number
+      ) => Response;
+
+      /**
+       * Sends an error response with a standard format.
+       *
+       * @param message - A descriptive message for the error (default: "Error").
+       * @param status - The HTTP status code to return (default: 500).
+       * @param error - Additional error details or object (default: null).
+       * @param data - Optional data payload to include in the error response (default: null).
+       * @returns The Express Response object.
+       */
+      error: (
+        message?: string,
+        status?: number,
+        error?: string | object | null,
+        data?: string | object | null
+      ) => Response;
+
+      /**
+       * Renders a React page using ArcanaJS SSR.
+       *
+       * @param page - The name of the page component to render.
+       * @param data - Initial data to pass to the page component (default: {}).
+       * @param params - Route parameters (default: {}).
+       * @returns The Express Response object.
+       */
+      renderPage(
+        page: string,
+        data?: any,
+        params?: Record<string, string>
+      ): Response;
     }
   }
 }
 
+import { DatabaseProvider } from "../arcanox/providers/DatabaseProvider";
+import { Container } from "./Container";
+
 class ArcanaJSServer<TDb = any> {
   public app: Express;
+  public container: Container;
   private config: ArcanaJSConfig<TDb>;
   private serverInstance?: import("http").Server;
   private _sigintHandler?: () => void;
   private _sigtermHandler?: () => void;
+  private providers: ServiceProvider[] = [];
 
   constructor(config: ArcanaJSConfig<TDb>) {
     this.config = config;
     this.app = express();
+    this.container = Container.getInstance();
+    DatabaseProvider.register(this.container).catch((err) => {
+      console.error("Failed to register DatabaseProvider:", err);
+    });
     this.initialize();
+    this.registerProviders();
+    this.bootProviders();
   }
 
-  /**
-   * Normalize different DB client shapes into a single object exposing:
-   * { client?: any, db?: any, close: async () => void }
-   */
-  private normalizeDb(obj: any): any {
-    if (!obj) return obj;
-
-    // If already normalized (has close function), return as-is
-    if (typeof obj.close === "function") {
-      return obj;
+  private registerProviders() {
+    if (this.config.providers) {
+      this.config.providers.forEach((ProviderClass) => {
+        const provider = new ProviderClass(this);
+        provider.register();
+        this.providers.push(provider);
+      });
     }
+  }
 
-    // Mongoose instance
-    if (typeof obj.disconnect === "function") {
-      return {
-        client: obj,
-        close: async () => {
-          await obj.disconnect();
-        },
-      };
-    }
-
-    // If object contains { client, db }
-    if (obj.client && obj.db) {
-      const client = obj.client;
-      return {
-        client,
-        db: obj.db,
-        close: async () => {
-          if (client && typeof client.close === "function") {
-            await client.close();
-          } else if (client && typeof client.disconnect === "function") {
-            await client.disconnect();
-          } else {
-            throw new Error("No close method on client");
-          }
-        },
-      };
-    }
-
-    // Native MongoClient instance
-    if (obj && typeof obj.close === "function" && obj.connect) {
-      return {
-        client: obj,
-        close: async () => {
-          await obj.close();
-        },
-      };
-    }
-
-    // Pg/mysql client with end()/query()
-    if (typeof obj.end === "function" || typeof obj.query === "function") {
-      return {
-        client: obj,
-        close: async () => {
-          if (typeof obj.end === "function") {
-            await obj.end();
-          } else if (typeof obj.close === "function") {
-            await obj.close();
-          } else {
-            throw new Error("No close/end method on SQL client");
-          }
-        },
-      };
-    }
-
-    // Try internal mongo client path { s: { client } }
-    if (obj.s && obj.s.client && typeof obj.s.client.close === "function") {
-      return {
-        client: obj.s.client,
-        db: obj,
-        close: async () => {
-          await obj.s.client.close();
-        },
-      };
-    }
-
-    // Fallback: wrap with a close that throws to surface the issue
-    return {
-      client: obj,
-      close: async () => {
-        throw new Error("No known close method on DB client");
-      },
-    };
+  private bootProviders() {
+    this.providers.forEach((provider) => {
+      provider.boot();
+    });
   }
 
   private initialize() {
@@ -177,18 +160,6 @@ class ArcanaJSServer<TDb = any> {
     this.app.use(createCsrfMiddleware());
     this.app.use(responseHandler);
 
-    // Expose `req.db` for convenience
-    this.app.use(
-      (
-        req: express.Request,
-        _res: express.Response,
-        next: express.NextFunction
-      ) => {
-        req.db = this.app.locals.db;
-        next();
-      }
-    );
-
     // Static files: resolve and dedupe paths, serve before compression to avoid recompressing static files
     const isProduction = process.env.NODE_ENV === "production";
     const staticOptions = { index: false, maxAge: isProduction ? "1y" : "0" };
@@ -211,41 +182,6 @@ class ArcanaJSServer<TDb = any> {
         layout,
       })
     );
-
-    // Establish DB connection if provided (normalize eagerly where possible)
-    if (this.config.dbConnect) {
-      try {
-        const maybe = this.config.dbConnect();
-        const handleDb = (db: any) => {
-          try {
-            this.app.locals.db = this.normalizeDb(db) || db;
-            console.log("Database connection attached to app.locals.db");
-          } catch (e) {
-            this.app.locals.db = db;
-            console.warn(
-              "DB connection attached without full normalization",
-              e
-            );
-          }
-        };
-
-        if (
-          maybe &&
-          (maybe as any).then &&
-          typeof (maybe as any).then === "function"
-        ) {
-          (maybe as Promise<any>)
-            .then(handleDb)
-            .catch((err: any) =>
-              console.error("Error establishing DB connection:", err)
-            );
-        } else {
-          handleDb(maybe);
-        }
-      } catch (err) {
-        console.error("Error calling dbConnect:", err);
-      }
-    }
 
     // Helper to mount arrays or single route objects
     const mount = (target: any, base?: string) => {
@@ -361,21 +297,23 @@ class ArcanaJSServer<TDb = any> {
           try {
             // Use __non_webpack_require__ if available to avoid Webpack bundling issues
             // or standard require if running in Node directly
-            const requireFunc =
-              typeof __non_webpack_require__ !== "undefined"
-                ? __non_webpack_require__
-                : eval("require");
+            const dynamicRequire = (id: string) => {
+              if (typeof __non_webpack_require__ !== "undefined") {
+                return __non_webpack_require__(id);
+              }
+              return eval("require")(id);
+            };
 
             // Register ts-node if needed
             if (file.endsWith(".tsx") || file.endsWith(".ts")) {
               try {
-                requireFunc("ts-node/register");
+                dynamicRequire("ts-node/register");
               } catch (e) {
                 // Ignore
               }
             }
 
-            const pageModule = requireFunc(fullPath);
+            const pageModule = dynamicRequire(fullPath);
             views[viewName] = pageModule.default || pageModule;
           } catch (error) {
             console.error(`Failed to load view ${viewName}:`, error);
@@ -429,81 +367,11 @@ class ArcanaJSServer<TDb = any> {
       console.log("HTTP server stopped");
     }
 
-    // Close DB connection if attached to app.locals.db
-    const db = this.app.locals.db as TDb | undefined;
-    if (db) {
-      let closed = false;
-      // Try mongoose.disconnect()
-      try {
-        if (typeof (db as any).disconnect === "function") {
-          await (db as any).disconnect();
-          closed = true;
-          console.log("Database connection closed via disconnect().");
-        }
-      } catch (err) {
-        console.error("Error calling disconnect() on DB client:", err);
-      }
-
-      // Try db.close()
-      if (!closed) {
-        try {
-          if (typeof (db as any).close === "function") {
-            await (db as any).close();
-            closed = true;
-            console.log("Database connection closed via close().");
-          }
-        } catch (err) {
-          console.error("Error calling close() on DB client:", err);
-        }
-      }
-
-      // Try db.end()
-      if (!closed) {
-        try {
-          if (typeof (db as any).end === "function") {
-            await (db as any).end();
-            closed = true;
-            console.log("Database connection closed via end().");
-          }
-        } catch (err) {
-          console.error("Error calling end() on DB client:", err);
-        }
-      }
-
-      // Try db.client?.close()
-      if (!closed) {
-        try {
-          const clientClose = (db as any).client && (db as any).client.close;
-          if (clientClose && typeof clientClose === "function") {
-            await (db as any).client.close();
-            closed = true;
-            console.log("Database connection closed via db.client.close().");
-          }
-        } catch (err) {
-          console.error("Error calling db.client.close() on DB client:", err);
-        }
-      }
-
-      // Try db.s?.client?.close() (internal Mongo client path)
-      if (!closed) {
-        try {
-          const maybeInternal =
-            (db as any).s && (db as any).s.client && (db as any).s.client.close;
-          if (maybeInternal && typeof maybeInternal === "function") {
-            await (db as any).s.client.close();
-            closed = true;
-            console.log("Database connection closed via db.s.client.close().");
-          }
-        } catch (err) {
-          console.error("Error calling db.s.client.close() on DB client:", err);
-        }
-      }
-
-      if (!closed) {
-        console.warn(
-          "Could not find a supported close method on the DB client; connection may remain open."
-        );
-      }
+    // Close DB connection via DatabaseProvider
+    try {
+      await DatabaseProvider.close(this.container);
+    } catch (err) {
+      console.error("Error closing database connection:", err);
     }
 
     // Remove signal handlers registered by this instance

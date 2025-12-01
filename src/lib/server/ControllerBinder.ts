@@ -1,12 +1,14 @@
 import { NextFunction, Request, Response } from "express";
 
+import { container } from "./Container";
+
 export default class ControllerBinder {
   static handle(controller: any, method: string) {
     // Instantiate the controller once (Singleton pattern) for performance
     // This assumes controllers are stateless, which is best practice.
     let instance: any;
     try {
-      instance = new controller();
+      instance = container.make(controller);
     } catch (e) {
       // Fallback if controller is not a class or fails to instantiate
       console.warn(`Failed to instantiate controller ${controller.name}`, e);
