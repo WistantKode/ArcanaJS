@@ -24,7 +24,10 @@ const config: webpack.Configuration = {
   optimization: {
     nodeEnv: false,
   },
-  externals: [nodeExternals(), "arcana-views"],
+  externals: [
+    nodeExternals({ allowlist: ["reflect-metadata"] }),
+    "arcana-views",
+  ],
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx"],
   },

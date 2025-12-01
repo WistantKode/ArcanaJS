@@ -24,12 +24,7 @@ export const handleDb = async (args: string[]) => {
   } catch (e) {}
 
   // Use dynamic require to avoid webpack bundling user project files
-  const dynamicRequire = (id: string) => {
-    if (typeof __non_webpack_require__ !== "undefined") {
-      return __non_webpack_require__(id);
-    }
-    return eval("require")(id);
-  };
+  const { dynamicRequire } = require("../../lib/server/utils/dynamicRequire");
 
   let config;
   try {

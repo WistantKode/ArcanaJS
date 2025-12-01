@@ -10,12 +10,7 @@ export const handleMigrate = async (args: string[]) => {
   const configPath = path.resolve(process.cwd(), "database/config.ts");
 
   // Dynamic require helper
-  const dynamicRequire = (id: string) => {
-    if (typeof __non_webpack_require__ !== "undefined") {
-      return __non_webpack_require__(id);
-    }
-    return eval("require")(id);
-  };
+  const { dynamicRequire } = require("../../lib/server/utils/dynamicRequire");
 
   // We need to register ts-node to load the config if it's a TS file
   try {

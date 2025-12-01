@@ -4,9 +4,6 @@ import webpack from "webpack";
 import { createClientConfig, createServerConfig } from "./webpack.config";
 
 declare module "webpack-node-externals";
-declare global {
-  var __non_webpack_require__: NodeJS.Require;
-}
 
 const args = process.argv.slice(2);
 const command = args[0];

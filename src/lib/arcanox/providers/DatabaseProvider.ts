@@ -3,13 +3,16 @@ import { Model } from "../Model";
 import { Schema } from "../schema";
 import { DatabaseAdapter } from "../types";
 
+import { dynamicRequire } from "../../server/utils/dynamicRequire";
+
 export class DatabaseProvider {
   static async register(container: Container) {
     let databaseConfig: any;
 
     try {
       const configPath = `${process.cwd()}/database/config`;
-      databaseConfig = require(configPath).default || require(configPath);
+      databaseConfig =
+        dynamicRequire(configPath).default || dynamicRequire(configPath);
     } catch (err) {
       console.warn("No database config found. Skipping database setup.");
       return;

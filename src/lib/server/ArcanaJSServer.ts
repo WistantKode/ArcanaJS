@@ -11,6 +11,7 @@ import { createArcanaJSMiddleware } from "./ArcanaJSMiddleware";
 import { createCsrfMiddleware } from "./CsrfMiddleware";
 import { createDynamicRouter } from "./DynamicRouter";
 import { responseHandler } from "./ResponseHandlerMiddleware";
+import { dynamicRequire } from "./utils/dynamicRequire";
 
 import { ServiceProvider } from "./support/ServiceProvider";
 
@@ -297,12 +298,6 @@ class ArcanaJSServer<TDb = any> {
           try {
             // Use __non_webpack_require__ if available to avoid Webpack bundling issues
             // or standard require if running in Node directly
-            const dynamicRequire = (id: string) => {
-              if (typeof __non_webpack_require__ !== "undefined") {
-                return __non_webpack_require__(id);
-              }
-              return eval("require")(id);
-            };
 
             // Register ts-node if needed
             if (file.endsWith(".tsx") || file.endsWith(".ts")) {

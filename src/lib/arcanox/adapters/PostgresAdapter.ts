@@ -1,4 +1,5 @@
 import type { Pool, PoolClient, QueryResult } from "pg";
+import { dynamicRequire } from "../../server/utils/dynamicRequire";
 import type {
   ColumnDefinition,
   Connection,
@@ -16,7 +17,7 @@ export class PostgresAdapter implements DatabaseAdapter {
   private client: PoolClient | null = null;
 
   async connect(config: DatabaseConfig): Promise<Connection> {
-    const { Pool } = await import("pg");
+    const { Pool } = dynamicRequire("pg");
 
     this.pool = new Pool({
       host: config.host,
