@@ -1,13 +1,12 @@
 import path from "path";
-import { Container } from "../../server/Container";
+import { ServiceProvider } from "../../server/support/ServiceProvider";
+import { dynamicRequire } from "../../server/utils/dynamicRequire";
 import { Model } from "../Model";
 import { Schema } from "../schema";
 import { DatabaseAdapter } from "../types";
 
-import { dynamicRequire } from "../../server/utils/dynamicRequire";
-
-export class DatabaseProvider {
-  static async register(container: Container) {
+export class DatabaseProvider extends ServiceProvider {
+  async register() {
     let databaseConfig: any;
 
     try {
@@ -32,9 +31,9 @@ export class DatabaseProvider {
       }
     })();
 
-    container.singleton("DatabaseAdapter", () => adapter);
+    this.app.container.singleton("DatabaseAdapter", () => adapter);
 
-    container.singleton("DBConnection", async () => {
+    this.app.container.singleton("DBConnection", async () => {
       const conn = await adapter.connect(databaseConfig);
       Model.setAdapter(adapter);
       Schema.setAdapter(adapter);
@@ -45,9 +44,9 @@ export class DatabaseProvider {
     });
   }
 
-  static async close(container: Container) {
+  async shutdown() {
     try {
-      const adapter = (await container.make(
+      const adapter = (await this.app.container.make(
         "DatabaseAdapter"
       )) as DatabaseAdapter;
       await adapter.disconnect();

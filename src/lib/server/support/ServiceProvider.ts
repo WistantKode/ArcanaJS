@@ -20,4 +20,11 @@ export abstract class ServiceProvider {
   boot(): void {
     //
   }
+
+  /**
+   * Shutdown any application services.
+   */
+  async shutdown(): Promise<void> {
+    //
+  }
 }

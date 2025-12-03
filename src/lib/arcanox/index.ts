@@ -22,3 +22,5 @@ export type {
 
 // MongoDB Extensions (must be imported to register macros)
 export * from "./extensions/MongoExtensions";
+
+export { DatabaseProvider } from "./providers/DatabaseProvider";

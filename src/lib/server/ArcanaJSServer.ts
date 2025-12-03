@@ -85,7 +85,6 @@ declare global {
   }
 }
 
-import { DatabaseProvider } from "../arcanox/providers/DatabaseProvider";
 import { Container } from "./Container";
 
 class ArcanaJSServer {
@@ -101,9 +100,6 @@ class ArcanaJSServer {
     this.config = config;
     this.app = express();
     this.container = Container.getInstance();
-    DatabaseProvider.register(this.container).catch((err) => {
-      console.error("Failed to register DatabaseProvider:", err);
-    });
     this.initialize();
     this.registerProviders();
     this.bootProviders();
@@ -362,11 +358,18 @@ class ArcanaJSServer {
       console.log("HTTP server stopped");
     }
 
-    // Close DB connection via DatabaseProvider
-    try {
-      await DatabaseProvider.close(this.container);
-    } catch (err) {
-      console.error("Error closing database connection:", err);
+    // Shutdown all providers
+    for (const provider of this.providers) {
+      if (provider.shutdown) {
+        try {
+          await provider.shutdown();
+        } catch (err) {
+          console.error(
+            `Error shutting down provider ${provider.constructor.name}:`,
+            err
+          );
+        }
+      }
     }
 
     // Remove signal handlers registered by this instance
