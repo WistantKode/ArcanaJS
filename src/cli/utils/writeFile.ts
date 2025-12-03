@@ -6,7 +6,7 @@ export const writeFile = async (
   fileName: string,
   content: string
 ) => {
-  const targetDir = path.resolve(process.cwd(), dir);
+  const targetDir = path.resolve(process.cwd(), `src/${dir}`);
   const targetFile = path.join(targetDir, fileName);
 
   if (!fs.existsSync(targetDir)) {
