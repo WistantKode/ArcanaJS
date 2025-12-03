@@ -1,3 +1,5 @@
+declare const __non_webpack_require__: NodeJS.Require;
+
 /**
  * Helper to dynamically require modules at runtime, bypassing Webpack bundling.
  * This is necessary for loading user configuration files, migrations, and views

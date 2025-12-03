@@ -74,6 +74,13 @@ export class Container {
   }
 
   /**
+   * Alias for make() - resolve a dependency from the container
+   */
+  public resolve<T>(key: string | ClassConstructor<T>): T {
+    return this.make(key);
+  }
+
+  /**
    * Instantiate a class, resolving its dependencies
    */
   private build<T>(target: ClassConstructor<T>): T {

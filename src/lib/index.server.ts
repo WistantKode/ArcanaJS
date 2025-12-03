@@ -14,13 +14,19 @@ export { Express, NextFunction, Request, Response } from "express";
 // Routing Exports
 // ============================================================================
 
-export { FormRequest } from "./server/http/FormRequest";
-export { JsonResource } from "./server/http/JsonResource";
-export type { Middleware } from "./server/http/Middleware";
 export { default as Route } from "./server/Router";
+
+// ============================================================================
+// Middleware Exports
+// ============================================================================
+
+export type { Middleware } from "./server/http/Middleware";
+
+// ============================================================================
+// Provider Exports
+// ============================================================================
+
 export { ServiceProvider } from "./server/support/ServiceProvider";
-export { ValidationException } from "./server/validation/ValidationException";
-export { Validator } from "./server/validation/Validator";
 
 // ============================================================================
 // Server Factory Function
@@ -41,7 +47,7 @@ export { Validator } from "./server/validation/Validator";
  * const app = express();
  * const server = createArcanaServer(app, {
  *   port: 3000,
- *   viewsDir: 'src/views',
+ *   viewsDir: 'src/resources/views',
  * });
  *
  * server.start();

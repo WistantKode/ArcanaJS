@@ -1,3 +1,4 @@
+import path from "path";
 import { Container } from "../../server/Container";
 import { Model } from "../Model";
 import { Schema } from "../schema";
@@ -10,7 +11,7 @@ export class DatabaseProvider {
     let databaseConfig: any;
 
     try {
-      const configPath = `${process.cwd()}/database/config`;
+      const configPath = path.resolve(process.cwd(), "src/config/database");
       databaseConfig =
         dynamicRequire(configPath).default || dynamicRequire(configPath);
     } catch (err) {

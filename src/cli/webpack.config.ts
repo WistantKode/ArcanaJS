@@ -5,6 +5,8 @@ import path from "path";
 import webpack from "webpack";
 import nodeExternals from "webpack-node-externals";
 
+declare const __non_webpack_require__: NodeJS.Require;
+
 const cwd = process.cwd();
 
 // Helper to resolve loaders from the framework's node_modules
@@ -53,7 +55,7 @@ const findEntry = (searchPaths: string[]): string => {
 };
 
 const getViewsLoaderPath = () => {
-  const viewsDir = path.resolve(cwd, "src/views");
+  const viewsDir = path.resolve(cwd, "src/resources/views");
   const hasViews = fs.existsSync(viewsDir);
   const viewsLoaderPath = path.resolve(
     __dirname,

@@ -1,4 +1,6 @@
 import { spawn } from "child_process";
+import dotenv from "dotenv";
+import fs from "fs";
 import path from "path";
 import webpack from "webpack";
 import { createClientConfig, createServerConfig } from "./webpack.config";
@@ -6,6 +8,24 @@ import { createClientConfig, createServerConfig } from "./webpack.config";
 declare module "webpack-node-externals";
 
 const args = process.argv.slice(2);
+
+// Handle custom environment file
+const envFileArg = args.find((arg) => arg.startsWith("--env-file="));
+const customEnvFile = envFileArg ? envFileArg.split("=")[1] : null;
+
+if (customEnvFile) {
+  const envPath = path.resolve(process.cwd(), customEnvFile);
+  if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+    console.log(`Loaded environment from ${customEnvFile}`);
+  } else {
+    console.warn(`Warning: Environment file ${customEnvFile} not found.`);
+  }
+} else {
+  // Try to load .env by default
+  dotenv.config();
+}
+
 const command = args[0];
 
 if (!command) {

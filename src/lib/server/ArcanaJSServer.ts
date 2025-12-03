@@ -15,7 +15,7 @@ import { dynamicRequire } from "./utils/dynamicRequire";
 
 import { ServiceProvider } from "./support/ServiceProvider";
 
-export interface ArcanaJSConfig<TDb = any> {
+export interface ArcanaJSConfig {
   port?: number | string;
   views?: Record<string, React.FC<any>>;
   viewsDir?: string;
@@ -29,8 +29,6 @@ export interface ArcanaJSConfig<TDb = any> {
   distDir?: string;
   indexFile?: string;
   layout?: React.FC<any>;
-  /** Optional function to establish a DB connection. Should return a Promise resolving to the DB client/connection. */
-  dbConnect?: () => Promise<TDb> | TDb;
   /** Automatically register SIGINT/SIGTERM handlers to call stop(). Default: true */
   autoHandleSignals?: boolean;
   /** Service providers to load */
@@ -90,16 +88,16 @@ declare global {
 import { DatabaseProvider } from "../arcanox/providers/DatabaseProvider";
 import { Container } from "./Container";
 
-class ArcanaJSServer<TDb = any> {
+class ArcanaJSServer {
   public app: Express;
   public container: Container;
-  private config: ArcanaJSConfig<TDb>;
+  private config: ArcanaJSConfig;
   private serverInstance?: import("http").Server;
   private _sigintHandler?: () => void;
   private _sigtermHandler?: () => void;
   private providers: ServiceProvider[] = [];
 
-  constructor(config: ArcanaJSConfig<TDb>) {
+  constructor(config: ArcanaJSConfig) {
     this.config = config;
     this.app = express();
     this.container = Container.getInstance();
@@ -158,6 +156,8 @@ class ArcanaJSServer<TDb = any> {
     // Security headers
     this.app.use(helmet({ contentSecurityPolicy: false }));
     this.app.use(cookieParser());
+    this.app.use(express.json());
+    this.app.use(express.urlencoded({ extended: true }));
     this.app.use(createCsrfMiddleware());
     this.app.use(responseHandler);
 
@@ -219,12 +219,12 @@ class ArcanaJSServer<TDb = any> {
       if (req.get("X-ArcanaJS-Request") || req.query.format === "json") {
         res.status(404).json({
           page: "NotFoundPage",
-          data: {},
+          data: { url: req.url },
           params: {},
           csrfToken: res.locals.csrfToken,
         });
       } else {
-        res.status(404).renderPage("NotFoundPage");
+        res.status(404).renderPage("NotFoundPage", { url: req.url });
       }
     });
 
@@ -280,7 +280,7 @@ class ArcanaJSServer<TDb = any> {
     const views: Record<string, React.FC<any>> = {};
     const viewsDir = this.config.viewsDir
       ? path.resolve(process.cwd(), this.config.viewsDir)
-      : path.resolve(process.cwd(), "src/views");
+      : path.resolve(process.cwd(), "src/resources/views");
 
     if (!fs.existsSync(viewsDir)) return views;
 

@@ -5,13 +5,17 @@
     "email": "mohammed.bencheikh.dev@gmail.com",
     "url": "https://mohammedbencheikh.com/"
   },
-  "version": "4.0.0",
+  "version": "5.0.0",
   "description": "ArcanaJS Framework",
   "main": "./dist/arcanajs.js",
   "scripts": {
     "build": "tsc -p tsconfig.json --emitDeclarationOnly && webpack --config webpack.config.ts"
   },
   "exports": {
+    "./server": {
+      "types": "./dist/lib/index.server.d.ts",
+      "default": "./dist/arcanajs.js"
+    },
     "./arcanox": {
       "types": "./dist/lib/index.arcanox.d.ts",
       "default": "./dist/arcanox.js"
@@ -20,9 +24,17 @@
       "types": "./dist/lib/index.client.d.ts",
       "default": "./dist/arcanajs.client.js"
     },
-    "./server": {
-      "types": "./dist/lib/index.server.d.ts",
-      "default": "./dist/arcanajs.js"
+    "./auth": {
+      "types": "./dist/lib/index.auth.d.ts",
+      "default": "./dist/arcanajs.auth.js"
+    },
+    "./validator": {
+      "types": "./dist/lib/index.validator.d.ts",
+      "default": "./dist/arcanajs.validator.js"
+    },
+    "./mail": {
+      "types": "./dist/lib/index.mail.d.ts",
+      "default": "./dist/arcanajs.mail.js"
     }
   },
   "bin": {
@@ -34,7 +46,15 @@
   ],
   "peerDependencies": {
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "pg": "^8.0.0",
+    "mysql2": "^3.0.0",
+    "mongodb": "^6.0.0 || ^7.0.0",
+    "ioredis": "^5.0.0",
+    "connect-redis": "^7.0.0",
+    "handlebars": "^4.7.0",
+    "nodemailer-mailgun-transport": "^2.0.0",
+    "@aws-sdk/client-ses": "^3.0.0"
   },
   "peerDependenciesMeta": {
     "pg": {
@@ -48,6 +68,21 @@
     },
     "mongodb": {
       "optional": true
+    },
+    "@aws-sdk/client-ses": {
+      "optional": true
+    },
+    "ioredis": {
+      "optional": true
+    },
+    "connect-redis": {
+      "optional": true
+    },
+    "handlebars": {
+      "optional": true
+    },
+    "nodemailer-mailgun-transport": {
+      "optional": true
     }
   },
   "dependencies": {
@@ -59,24 +94,30 @@
     "@types/compression": "^1.8.1",
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.5",
-    "@types/node": "^24.10.1",
-    "@types/react": "^19.2.7",
-    "@types/react-dom": "^19.2.3",
+    "@types/nodemailer": "^6.4.14",
     "@types/ws": "^8.18.1",
     "autoprefixer": "^10.4.22",
     "babel-loader": "^10.0.0",
+    "bcryptjs": "^2.4.3",
     "clean-webpack-plugin": "^4.0.0",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
     "cross-env": "^10.1.0",
     "css-loader": "^7.1.2",
+    "dotenv": "^16.6.1",
+    "ejs": "^3.1.9",
     "express": "^5.1.0",
+    "express-session": "^1.18.0",
+    "express-validator": "^7.3.1",
     "helmet": "^8.1.0",
     "html-webpack-plugin": "^5.6.5",
+    "jsonwebtoken": "^9.0.2",
     "mini-css-extract-plugin": "^2.9.4",
+    "nodemailer": "^6.9.7",
     "null-loader": "^4.0.1",
     "postcss": "^8.5.6",
     "postcss-loader": "^8.2.0",
+    "redis": "^4.6.12",
     "reflect-metadata": "^0.2.2",
     "style-loader": "^4.0.0",
     "tailwindcss": "^4.1.17",
@@ -89,11 +130,23 @@
     "ws": "^8.18.3"
   },
   "devDependencies": {
+    "@aws-sdk/client-ses": "^3.490.0",
     "@faker-js/faker": "^10.1.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/ejs": "^3.1.5",
+    "@types/express-session": "^1.18.0",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^24.10.1",
     "@types/pg": "^8.15.6",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
     "@types/webpack-node-externals": "^3.0.4",
+    "connect-redis": "^7.1.0",
+    "handlebars": "^4.7.8",
+    "ioredis": "^5.3.2",
     "mongodb": "^7.0.0",
     "mysql2": "^3.15.3",
+    "nodemailer-mailgun-transport": "^2.1.5",
     "pg": "^8.16.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"

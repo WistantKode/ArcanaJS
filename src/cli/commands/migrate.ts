@@ -7,7 +7,7 @@ export const handleMigrate = async (args: string[]) => {
   const command = args[0]; // migrate, migrate:rollback, etc.
 
   // Load config
-  const configPath = path.resolve(process.cwd(), "database/config.ts");
+  const configPath = path.resolve(process.cwd(), "src/config/database");
 
   // Dynamic require helper
   const { dynamicRequire } = require("../../lib/server/utils/dynamicRequire");
@@ -47,7 +47,7 @@ export const handleMigrate = async (args: string[]) => {
   try {
     await adapter.connect(config);
 
-    const migrationsPath = path.resolve(process.cwd(), "database/migrations");
+    const migrationsPath = path.resolve(process.cwd(), "src/database/migrations");
     const runner = new MigrationRunner(adapter, migrationsPath);
 
     switch (command) {

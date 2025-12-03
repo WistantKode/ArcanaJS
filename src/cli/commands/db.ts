@@ -1,4 +1,5 @@
 import path from "path";
+import { MongoAdapter } from "../../lib/arcanox/adapters/MongoAdapter";
 import { MySQLAdapter } from "../../lib/arcanox/adapters/MySQLAdapter";
 import { PostgresAdapter } from "../../lib/arcanox/adapters/PostgresAdapter";
 import { Model } from "../../lib/arcanox/Model";
@@ -39,6 +40,8 @@ export const handleDb = async (args: string[]) => {
   let adapter;
   if (config.type === "postgres") {
     adapter = new PostgresAdapter();
+  } else if (config.type === "mongodb") {
+    adapter = new MongoAdapter();
   } else if (config.type === "mysql") {
     adapter = new MySQLAdapter();
   } else {
