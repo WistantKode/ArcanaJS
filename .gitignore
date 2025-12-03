@@ -10,7 +10,7 @@ lerna-debug.log*
 node_modules
 dist
 build
-# create-arcanajs-app
+create-arcanajs-app
 .cache
 *.local
 
