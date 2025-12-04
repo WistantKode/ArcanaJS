@@ -80,7 +80,7 @@ const getViewsLoaderPath = () => {
 export const createClientConfig = (): webpack.Configuration => {
   const isProduction = process.env.NODE_ENV === "production";
   const viewsLoaderPath = getViewsLoaderPath();
-  const clientEntry = findEntry(["src/client", "src/client/index"]);
+  const clientEntry = findEntry(["src/bootstrap/client"]);
 
   return {
     mode: isProduction ? "production" : "development",
@@ -255,8 +255,6 @@ export const createClientConfig = (): webpack.Configuration => {
 export const createServerConfig = (): webpack.Configuration => {
   const isProduction = process.env.NODE_ENV === "production";
   const serverEntry = findEntry([
-    "src/server",
-    "src/server/index",
     "src/bootstrap/server",
   ]);
 
