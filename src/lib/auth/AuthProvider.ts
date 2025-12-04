@@ -15,8 +15,6 @@ export class AuthProvider extends ServiceProvider {
 
     // Try multiple possible config paths
     const possiblePaths = [
-      path.resolve(process.cwd(), "dist/config/auth.js"),
-      path.resolve(process.cwd(), "dist/config/auth.ts"),
       path.resolve(process.cwd(), "src/config/auth.ts"),
       path.resolve(process.cwd(), "src/config/auth.js"),
     ];
@@ -30,7 +28,7 @@ export class AuthProvider extends ServiceProvider {
 
       try {
         const required = dynamicRequire(configPath);
-        authConfig = required.default || required.authConfig || required;
+        authConfig = required.default;
         configLoaded = true;
         break;
       } catch (err) {

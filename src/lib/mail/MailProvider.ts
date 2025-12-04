@@ -16,8 +16,6 @@ export class MailProvider extends ServiceProvider {
 
     // Try multiple possible config paths
     const possiblePaths = [
-      path.resolve(process.cwd(), "dist/config/mail.js"),
-      path.resolve(process.cwd(), "dist/config/mail.ts"),
       path.resolve(process.cwd(), "src/config/mail.ts"),
       path.resolve(process.cwd(), "src/config/mail.js"),
     ];
@@ -31,7 +29,7 @@ export class MailProvider extends ServiceProvider {
 
       try {
         const required = dynamicRequire(configPath);
-        mailConfig = required.default || required.mailConfig || required;
+        mailConfig = required.default;
         configLoaded = true;
         break;
       } catch (err) {

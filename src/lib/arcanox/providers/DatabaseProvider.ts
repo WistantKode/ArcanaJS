@@ -12,8 +12,6 @@ export class DatabaseProvider extends ServiceProvider {
 
     // Try multiple possible config paths
     const possiblePaths = [
-      path.resolve(process.cwd(), "dist/config/database.js"),
-      path.resolve(process.cwd(), "dist/config/database.ts"),
       path.resolve(process.cwd(), "src/config/database.ts"),
       path.resolve(process.cwd(), "src/config/database.js"),
     ];
@@ -27,8 +25,7 @@ export class DatabaseProvider extends ServiceProvider {
 
       try {
         const required = dynamicRequire(configPath);
-        databaseConfig =
-          required.default || required.databaseConfig || required;
+        databaseConfig = required.default;
         configLoaded = true;
         break;
       } catch (err) {
