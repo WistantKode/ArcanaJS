@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { ServiceProvider } from "../../server/support/ServiceProvider";
-import { dynamicRequireSync } from "../../server/utils/dynamicRequire";
+import { dynamicRequire } from "../../server/utils/dynamicRequire";
 import { Model } from "../Model";
 import { Schema } from "../schema";
 import { DatabaseAdapter } from "../types";
@@ -26,7 +26,7 @@ export class DatabaseProvider extends ServiceProvider {
       }
 
       try {
-        const required = dynamicRequireSync(configPath);
+        const required = dynamicRequire(configPath);
         databaseConfig =
           required.default || required.databaseConfig || required;
         configLoaded = true;

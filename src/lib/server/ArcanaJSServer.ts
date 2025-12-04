@@ -11,7 +11,7 @@ import { createArcanaJSMiddleware } from "./ArcanaJSMiddleware";
 import { createCsrfMiddleware } from "./CsrfMiddleware";
 import { createDynamicRouter } from "./DynamicRouter";
 import { responseHandler } from "./ResponseHandlerMiddleware";
-import { dynamicRequireSync } from "./utils/dynamicRequire";
+import { dynamicRequire } from "./utils/dynamicRequire";
 
 import { ServiceProvider } from "./support/ServiceProvider";
 
@@ -298,13 +298,13 @@ class ArcanaJSServer {
             // Register ts-node if needed
             if (file.endsWith(".tsx") || file.endsWith(".ts")) {
               try {
-                dynamicRequireSync("ts-node/register");
+                dynamicRequire("ts-node/register");
               } catch (e) {
                 // Ignore
               }
             }
 
-            const pageModule = dynamicRequireSync(fullPath);
+            const pageModule = dynamicRequire(fullPath);
             views[viewName] = pageModule.default || pageModule;
           } catch (error) {
             console.error(`Failed to load view ${viewName}:`, error);

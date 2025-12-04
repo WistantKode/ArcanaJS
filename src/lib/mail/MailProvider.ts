@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { ServiceProvider } from "../server/support/ServiceProvider";
-import { dynamicRequireSync } from "../server/utils/dynamicRequire";
+import { dynamicRequire } from "../server/utils/dynamicRequire";
 import { MailService } from "./MailService";
 import { MailConfig } from "./types";
 
@@ -30,7 +30,7 @@ export class MailProvider extends ServiceProvider {
       }
 
       try {
-        const required = dynamicRequireSync(configPath);
+        const required = dynamicRequire(configPath);
         mailConfig = required.default || required.mailConfig || required;
         configLoaded = true;
         break;

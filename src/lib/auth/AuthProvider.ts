@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import MiddlewareBinder from "../server/MiddlewareBinder";
 import { ServiceProvider } from "../server/support/ServiceProvider";
-import { dynamicRequireSync } from "../server/utils/dynamicRequire";
+import { dynamicRequire } from "../server/utils/dynamicRequire";
 import { JWTService } from "./JWTService";
 import { AuthMiddleware } from "./middleware/AuthMiddleware";
 import { SessionManager } from "./SessionManager";
@@ -29,7 +29,7 @@ export class AuthProvider extends ServiceProvider {
       }
 
       try {
-        const required = dynamicRequireSync(configPath);
+        const required = dynamicRequire(configPath);
         authConfig = required.default || required.authConfig || required;
         configLoaded = true;
         break;
