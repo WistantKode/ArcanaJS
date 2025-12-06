@@ -5,8 +5,29 @@ import { Blueprint } from "./Blueprint";
  * Schema - ArcnanJS schema builder
  * Provides fluent interface for creating and modifying database tables
  */
+declare global {
+  var ArcanaDatabaseAdapter: DatabaseAdapter | undefined;
+}
+
+/**
+ * Schema - ArcnanJS schema builder
+ * Provides fluent interface for creating and modifying database tables
+ */
 export class Schema {
   private static adapter: DatabaseAdapter;
+
+  /**
+   * Get the database adapter
+   */
+  private static getAdapter(): DatabaseAdapter {
+    const adapter = this.adapter || global.ArcanaDatabaseAdapter;
+    if (!adapter) {
+      throw new Error(
+        "Database adapter not set. Call Schema.setAdapter() or ensure global.ArcanaDatabaseAdapter is set."
+      );
+    }
+    return adapter;
+  }
 
   /**
    * Set the database adapter
@@ -25,7 +46,7 @@ export class Schema {
     const blueprint = new Blueprint(tableName);
     callback(blueprint);
 
-    await this.adapter.createTable(tableName, blueprint.getColumns());
+    await this.getAdapter().createTable(tableName, blueprint.getColumns());
   }
 
   /**
@@ -49,7 +70,7 @@ export class Schema {
    * Drop a table
    */
   static async drop(tableName: string): Promise<void> {
-    await this.adapter.dropTable(tableName);
+    await this.getAdapter().dropTable(tableName);
   }
 
   /**
@@ -74,7 +95,7 @@ export class Schema {
    * Check if a table exists
    */
   static async hasTable(tableName: string): Promise<boolean> {
-    return await this.adapter.hasTable(tableName);
+    return await this.getAdapter().hasTable(tableName);
   }
 
   /**
@@ -84,7 +105,7 @@ export class Schema {
     tableName: string,
     columnName: string
   ): Promise<boolean> {
-    return await this.adapter.hasColumn(tableName, columnName);
+    return await this.getAdapter().hasColumn(tableName, columnName);
   }
 
   /**
