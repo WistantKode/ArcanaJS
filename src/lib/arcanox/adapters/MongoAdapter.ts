@@ -15,16 +15,23 @@ export class MongoAdapter implements DatabaseAdapter {
 
   async connect(config: DatabaseConfig): Promise<Connection> {
     const { MongoClient } = dynamicRequire("mongodb");
-    const url = `mongodb://${config.host}:${config.port}`;
-    this.client = new MongoClient(url, {
-      auth:
-        config.username && config.password
-          ? {
-              username: config.username,
-              password: config.password,
-            }
-          : undefined,
-    });
+
+    // Support full connection string (url or uri) or build from parts
+    const url =
+      config.url || config.uri || `mongodb://${config.host}:${config.port}`;
+
+    const options: any = {};
+
+    // Only add auth if not using a connection string that likely already has it
+    // or if explicitly provided to override
+    if (!config.url && !config.uri && config.username && config.password) {
+      options.auth = {
+        username: config.username,
+        password: config.password,
+      };
+    }
+
+    this.client = new MongoClient(url, options);
 
     await this.client!.connect();
     this.db = this.client!.db(config.database);
@@ -152,12 +159,12 @@ export class MongoAdapter implements DatabaseAdapter {
     const filter = { _id: this.normalizeId(id) };
     const update = { $set: data };
 
-    await collection.updateOne(filter, update);
+    const result = await collection.findOneAndUpdate(filter, update, {
+      returnDocument: "after",
+    });
 
-    // Return updated document (requires another query or findOneAndUpdate)
-    const updated = await collection.findOne(filter);
-    if (updated) {
-      const { _id, ...rest } = updated;
+    if (result) {
+      const { _id, ...rest } = result;
       return { id: _id, _id, ...rest };
     }
     return null;

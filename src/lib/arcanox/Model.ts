@@ -20,6 +20,10 @@ export interface RelationConfig {
 
 import { Macroable } from "./support/Macroable";
 
+declare global {
+  var ArcanaDatabaseAdapter: DatabaseAdapter | undefined;
+}
+
 /**
  * Base Model class - Arcanox ORM
  */
@@ -57,6 +61,19 @@ export class Model<T = any> extends Macroable {
   }
 
   /**
+   * Get the database adapter
+   */
+  protected static getAdapter(): DatabaseAdapter {
+    const adapter = this.adapter || global.ArcanaDatabaseAdapter;
+    if (!adapter) {
+      throw new Error(
+        "Database adapter not set. Call Model.setAdapter() or ensure global.ArcanaDatabaseAdapter is set."
+      );
+    }
+    return adapter;
+  }
+
+  /**
    * Get the table name
    */
   static getTable(): string {
@@ -72,7 +89,9 @@ export class Model<T = any> extends Macroable {
    * Create a new query builder instance
    */
   static query<T>(): QueryBuilder<T> {
-    return new QueryBuilder<T>(this.getTable(), this.adapter);
+    return new QueryBuilder<T>(this.getTable(), this.getAdapter()).setModel(
+      this
+    );
   }
 
   /**
@@ -122,7 +141,7 @@ export class Model<T = any> extends Macroable {
       instance.attributes[instance.updatedAt] = now;
     }
 
-    const result = await this.adapter.insert(
+    const result = await this.getAdapter().insert(
       this.getTable(),
       instance.attributes
     );
@@ -327,17 +346,14 @@ export class Model<T = any> extends Macroable {
     if (this.exists) {
       // Update existing record
       const id = this.attributes[constructor.primaryKey];
-      await constructor.adapter.update(
-        constructor.getTable(),
-        id,
-        this.attributes
-      );
+      await constructor
+        .getAdapter()
+        .update(constructor.getTable(), id, this.attributes);
     } else {
       // Insert new record
-      const result = await constructor.adapter.insert(
-        constructor.getTable(),
-        this.attributes
-      );
+      const result = await constructor
+        .getAdapter()
+        .insert(constructor.getTable(), this.attributes);
 
       const id = result[constructor.primaryKey] || result.id || result.insertId;
       this.attributes[constructor.primaryKey] = id;
@@ -373,7 +389,7 @@ export class Model<T = any> extends Macroable {
     }
 
     const id = this.attributes[constructor.primaryKey];
-    return await constructor.adapter.delete(constructor.getTable(), id);
+    return await constructor.getAdapter().delete(constructor.getTable(), id);
   }
 
   /**
@@ -382,7 +398,7 @@ export class Model<T = any> extends Macroable {
   async forceDelete(): Promise<boolean> {
     const constructor = this.constructor as typeof Model;
     const id = this.attributes[constructor.primaryKey];
-    return await constructor.adapter.delete(constructor.getTable(), id);
+    return await constructor.getAdapter().delete(constructor.getTable(), id);
   }
 
   /**

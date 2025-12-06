@@ -50,14 +50,16 @@ export class MySQLAdapter implements DatabaseAdapter {
   }
 
   async query(sql: string, params?: any[]): Promise<any> {
-    if (!this.pool) throw new Error("Database not connected");
-    const [rows] = await this.pool.query<RowDataPacket[]>(sql, params);
+    const executor = this.connection || this.pool;
+    if (!executor) throw new Error("Database not connected");
+    const [rows] = await executor.query<RowDataPacket[]>(sql, params);
     return rows;
   }
 
   async execute(sql: string, params?: any[]): Promise<any> {
-    if (!this.pool) throw new Error("Database not connected");
-    const [result] = await this.pool.execute<ResultSetHeader>(sql, params);
+    const executor = this.connection || this.pool;
+    if (!executor) throw new Error("Database not connected");
+    const [result] = await executor.execute<ResultSetHeader>(sql, params);
     return result;
   }
 

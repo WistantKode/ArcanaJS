@@ -37,12 +37,14 @@ export interface DatabaseAdapter {
 
 export interface DatabaseConfig {
   type: "postgres" | "mysql" | "mongodb";
-  host: string;
-  port: number;
+  host?: string;
+  port?: number;
   database: string;
   username?: string;
   password?: string;
   ssl?: boolean;
+  url?: string;
+  uri?: string;
   pool?: {
     min?: number;
     max?: number;

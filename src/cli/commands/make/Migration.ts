@@ -14,14 +14,14 @@ const makeMigration = async (name: string) => {
 
 class ${toPascalCase(name)} extends Migration {
   async up() {
-    // await Schema.create('${name}', (table) => {
+    // await Schema.create('${name.toLowerCase()}', (table) => {
     //   table.id()
     //   table.timestamps()
     // })
   }
 
   async down() {
-    // await Schema.dropIfExists('${name}')
+    // await Schema.dropIfExists('${name.toLowerCase()}')
   }
 }
 

@@ -1,53 +1,95 @@
 import path from "path";
-import { MySQLAdapter } from "../../lib/arcanox/adapters/MySQLAdapter";
-import { PostgresAdapter } from "../../lib/arcanox/adapters/PostgresAdapter";
+import { Model } from "../../lib/arcanox/Model";
+import { Schema } from "../../lib/arcanox/schema";
 import { MigrationRunner } from "../../lib/arcanox/schema/Migration";
+import { Container } from "../../lib/server/Container";
+import { dynamicRequire } from "../../lib/server/utils/dynamicRequire";
 
 export const handleMigrate = async (args: string[]) => {
   const command = args[0]; // migrate, migrate:rollback, etc.
-
   // Load config
-  const configPath = path.resolve(process.cwd(), "src/config/database");
+  const configPath = path.resolve(process.cwd(), "src/config/database.ts");
 
-  // Dynamic require helper
-  const { dynamicRequire } = require("../../lib/server/utils/dynamicRequire");
-
-  // We need to register ts-node to load the config if it's a TS file
   try {
-    dynamicRequire("ts-node").register({
+    const tsNode = dynamicRequire("ts-node");
+    tsNode.register({
       transpileOnly: true,
       compilerOptions: {
         module: "commonjs",
+        moduleResolution: "node",
       },
     });
   } catch (e) {
     // ts-node might not be installed, try loading js
   }
 
-  let config;
+  let rawConfig;
   try {
     const module = dynamicRequire(configPath);
-    config = module.default || module.databaseConfig || module;
+    rawConfig = module.default || module.databaseConfig || module;
   } catch (error) {
     console.error("Failed to load database config:", error);
     process.exit(1);
   }
 
+  // Register config in container (to match DatabaseProvider logic)
+  const container = Container.getInstance();
+  container.singleton("DatabaseConfig", () => rawConfig);
+
+  let databaseConfig: any;
+  try {
+    databaseConfig = container.resolve("DatabaseConfig");
+    console.log("✓ Migration: Configuration loaded successfully");
+  } catch (err) {
+    console.warn("⚠ Migration: No configuration found - Skipping setup");
+    process.exit(1);
+  }
+
   // Connect to DB
   let adapter;
-  if (config.type === "postgres") {
-    adapter = new PostgresAdapter();
-  } else if (config.type === "mysql") {
-    adapter = new MySQLAdapter();
-  } else {
-    console.error(`Unsupported database type: ${config.type}`);
+  try {
+    switch (databaseConfig.type) {
+      case "mysql":
+        const { MySQLAdapter } = await import(
+          "../../lib/arcanox/adapters/MySQLAdapter"
+        );
+        adapter = new MySQLAdapter();
+        break;
+      case "mongodb":
+        const { MongoAdapter } = await import(
+          "../../lib/arcanox/adapters/MongoAdapter"
+        );
+        adapter = new MongoAdapter();
+        break;
+      case "postgres":
+        const { PostgresAdapter } = await import(
+          "../../lib/arcanox/adapters/PostgresAdapter"
+        );
+        adapter = new PostgresAdapter();
+        break;
+      default:
+        throw new Error(`Unsupported database type: ${databaseConfig.type}`);
+    }
+  } catch (error) {
+    console.error("Failed to load database adapter:", error);
     process.exit(1);
   }
 
   try {
-    await adapter.connect(config);
+    await adapter.connect(databaseConfig);
 
-    const migrationsPath = path.resolve(process.cwd(), "src/database/migrations");
+    // 1. Configure bundled Arcanox (used by MigrationRunner internal logic)
+    Model.setAdapter(adapter);
+    Schema.setAdapter(adapter);
+
+    // 2. Set global adapter for user's Arcanox instance (used by migration files imported from node_modules)
+    // This solves the split-brain issue by allowing the user's instance to find the adapter globally
+    global.ArcanaDatabaseAdapter = adapter;
+
+    const migrationsPath = path.resolve(
+      process.cwd(),
+      "src/database/migrations"
+    );
     const runner = new MigrationRunner(adapter, migrationsPath);
 
     switch (command) {

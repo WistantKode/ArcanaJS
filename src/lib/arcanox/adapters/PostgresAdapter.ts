@@ -45,14 +45,16 @@ export class PostgresAdapter implements DatabaseAdapter {
   }
 
   async query(sql: string, params?: any[]): Promise<any> {
-    if (!this.pool) throw new Error("Database not connected");
-    const result: QueryResult = await this.pool.query(sql, params);
+    const executor = this.client || this.pool;
+    if (!executor) throw new Error("Database not connected");
+    const result: QueryResult = await executor.query(sql, params);
     return result.rows;
   }
 
   async execute(sql: string, params?: any[]): Promise<any> {
-    if (!this.pool) throw new Error("Database not connected");
-    const result: QueryResult = await this.pool.query(sql, params);
+    const executor = this.client || this.pool;
+    if (!executor) throw new Error("Database not connected");
+    const result: QueryResult = await executor.query(sql, params);
     return result;
   }
 
