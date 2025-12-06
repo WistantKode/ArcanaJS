@@ -5,7 +5,7 @@
     "email": "mohammed.bencheikh.dev@gmail.com",
     "url": "https://mohammedbencheikh.com/"
   },
-  "version": "5.0.2",
+  "version": "5.0.3",
   "description": "ArcanaJS Framework",
   "type": "module",
   "main": "./dist/arcanajs.js",
