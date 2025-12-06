@@ -1,5 +1,6 @@
 import * as ejs from "ejs";
 import * as fs from "fs";
+import { htmlToText as convertHtmlToText } from "html-to-text";
 import * as path from "path";
 import { MailTemplateConfig } from "../types";
 
@@ -118,27 +119,15 @@ export class TemplateRenderer {
    * Convert HTML to plain text
    */
   private static htmlToText(html: string): string {
-    let text = html;
-
-    // Recursively remove script and style tags to handle nested/malicious injections
-    // e.g. <scr<script>ipt>
-    const removeTags = (str: string, tagName: string): string => {
-      const regex = new RegExp(`<${tagName}[^>]*>.*?<\\/${tagName}>`, "gi");
-      let oldStr;
-      do {
-        oldStr = str;
-        str = str.replace(regex, "");
-      } while (str !== oldStr);
-      return str;
-    };
-
-    text = removeTags(text, "style");
-    text = removeTags(text, "script");
-
-    // Remove all other tags using a robust regex that handles attributes with >
-    // Matches <tag ... > where ... can contain quoted strings with >
-    text = text.replace(/<[^"'>]*(?:(?:"[^"]*"|'[^']*')[^"'>]*)*>/g, "");
-
-    return text.replace(/\s+/g, " ").trim();
+    // Robustly convert HTML to plain text using a well-tested library
+    return convertHtmlToText(html, {
+      wordwrap: false,
+      selectors: [
+        { selector: "img", format: "skip" },
+        { selector: "a", options: { ignoreHref: true } },
+      ],
+    })
+      .replace(/\s+/g, " ")
+      .trim();
   }
 }
