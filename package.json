@@ -9,7 +9,7 @@
   "description": "ArcanaJS Framework",
   "main": "./dist/arcanajs.js",
   "scripts": {
-    "build": "tsc -p tsconfig.json --emitDeclarationOnly && webpack --config webpack.config.ts && cp -r src/types dist/ && node scripts/post-build.js",
+    "build": "tsc -p tsconfig.json --emitDeclarationOnly && webpack --config webpack.config.ts && cp -r src/types dist/ && node scripts/post-build.js && node scripts/create-entry-points.js",
     "update": "node scripts/update-packages.js",
     "test": "echo \"No tests specified\" && exit 0"
   },
