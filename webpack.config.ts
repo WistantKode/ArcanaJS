@@ -4,8 +4,7 @@ import nodeExternals from "webpack-node-externals";
 
 const cwd = process.cwd();
 
-const config: webpack.Configuration = {
-  mode: "production",
+const commonConfig: webpack.Configuration = {
   target: "node",
   entry: {
     arcanajs: path.resolve(cwd, "src/lib/index.server.ts"),
@@ -18,14 +17,10 @@ const config: webpack.Configuration = {
   },
   output: {
     path: path.resolve(cwd, "dist"),
-    filename: "[name].js",
     library: {
       type: "commonjs",
     },
     clean: false,
-  },
-  optimization: {
-    nodeEnv: false,
   },
   externals: [
     nodeExternals({ allowlist: ["reflect-metadata"] }),
@@ -52,12 +47,36 @@ const config: webpack.Configuration = {
       },
     ],
   },
-  plugins: [
-    // We don't want to clean everything because tsc runs first and outputs d.ts files
-    // But we can clean .js files if we want. For now, let's rely on tsc cleaning or manual clean.
-    // actually, let's not use CleanWebpackPlugin here if we are mixing with tsc output in the same dir
-  ],
+  plugins: [],
   devtool: "source-map",
 };
 
-export default config;
+const devConfig: webpack.Configuration = {
+  ...commonConfig,
+  mode: "development",
+  output: {
+    ...commonConfig.output,
+    path: path.resolve(cwd, "dist/development"),
+    filename: "[name].js",
+  },
+  optimization: {
+    nodeEnv: false,
+    minimize: false,
+  },
+};
+
+const prodConfig: webpack.Configuration = {
+  ...commonConfig,
+  mode: "production",
+  output: {
+    ...commonConfig.output,
+    path: path.resolve(cwd, "dist/production"),
+    filename: "[name].min.js",
+  },
+  optimization: {
+    nodeEnv: false,
+    minimize: false,
+  },
+};
+
+export default [devConfig, prodConfig];
