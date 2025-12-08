@@ -6,7 +6,7 @@ class HomeController {
     try {
       // Provide example page data to demonstrate passing data to the view
       const data: HomePageData = {
-        welcome: "Welcome to ArcanaJS mohammed home controller test from you me ",
+        welcome: "Welcome to ArcanaJS",
         subtitle: "A modern React framework with server-side rendering",
         time: new Date().toISOString(),
         posts: [

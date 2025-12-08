@@ -3,7 +3,7 @@ import { User } from "../Models/User";
 
 @Repository()
 class UserRepository {
-  async findById(id: number) {
+  async findById(id: string) {
     return await User.find(id);
   }
 }

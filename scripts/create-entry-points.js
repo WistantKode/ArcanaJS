@@ -7,6 +7,7 @@ const entryPoints = [
   "arcanajs",
   "arcanox",
   "arcanajs.client",
+  "arcanajs.di",
   "arcanajs.validator",
   "arcanajs.auth",
   "arcanajs.mail",

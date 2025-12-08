@@ -1,7 +1,7 @@
+import { ServiceProvider } from "../../server/ServiceProvider";
 import { getAllInjectables } from "../decorators/metadata";
 import { AutoDiscoveryConfig } from "../decorators/types";
 import { ClassScanner } from "../support/ClassScanner";
-import { ServiceProvider } from "../support/ServiceProvider";
 
 export interface AutoRegisterConfig extends AutoDiscoveryConfig {
   directories: string[];

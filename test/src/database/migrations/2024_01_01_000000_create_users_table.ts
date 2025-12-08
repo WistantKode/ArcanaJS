@@ -8,7 +8,7 @@ export class CreateUsersTable extends Migration {
    * Run the migration
    */
   async up(): Promise<void> {
-    await Schema.create("med", (table) => {
+    await Schema.create("users", (table) => {
       table.id();
       table.string("name");
       table.string("email").unique();

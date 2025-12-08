@@ -1,10 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
-import { ClassConstructor } from "../Container";
-import { getInjectableMetadata, isInjectable } from "../decorators/metadata";
-import { InjectableMetadata } from "../decorators/types";
-import { dynamicRequire } from "../utils/dynamicRequire";
-import { registerTsNode } from "../utils/tsLoader";
+import { ModuleLoader } from "../../../utils/ModuleLoader";
+import { ClassConstructor } from "../../di/Container";
+import {
+  getInjectableMetadata,
+  isInjectable,
+} from "../../di/decorators/metadata";
+import { InjectableMetadata } from "../../di/decorators/types";
 
 export interface ScanOptions {
   /**
@@ -143,7 +145,7 @@ export class ClassScanner {
 
     try {
       // Dynamic import to load the module
-      const moduleExports = dynamicRequire(filePath);
+      const moduleExports = ModuleLoader.require(filePath);
 
       // Check all exports for injectable classes
       for (const key of Object.keys(moduleExports)) {
@@ -176,7 +178,7 @@ export class ClassScanner {
    */
   private registerTsSupport(filePath: string, debug: boolean) {
     if (this.tsSupportRegistered) return;
-    this.tsSupportRegistered = registerTsNode();
+    this.tsSupportRegistered = ModuleLoader.registerTsNode();
   }
 
   /**

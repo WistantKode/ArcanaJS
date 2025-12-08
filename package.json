@@ -33,6 +33,10 @@
       "types": "./dist/lib/index.auth.d.ts",
       "default": "./dist/arcanajs.auth.js"
     },
+    "./di": {
+      "types": "./dist/lib/index.di.d.ts",
+      "default": "./dist/arcanajs.di.js"
+    },
     "./validator": {
       "types": "./dist/lib/index.validator.d.ts",
       "default": "./dist/arcanajs.validator.js"

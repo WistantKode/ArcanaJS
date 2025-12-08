@@ -1,4 +1,4 @@
-import { ServiceProvider } from "../../server/support/ServiceProvider";
+import { ServiceProvider } from "../../server/ServiceProvider";
 import { Model } from "../Model";
 import { Schema } from "../schema";
 import { DatabaseAdapter } from "../types";

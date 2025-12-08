@@ -5,17 +5,17 @@ import fs from "fs";
 import helmet from "helmet";
 import path from "path";
 import React from "react";
+import { ModuleLoader } from "../../utils/ModuleLoader";
 import ErrorPage from "../shared/views/ErrorPage";
 import NotFoundPage from "../shared/views/NotFoundPage";
 import { createArcanaJSMiddleware } from "./ArcanaJSMiddleware";
 import { createCsrfMiddleware } from "./CsrfMiddleware";
 import { createDynamicRouter } from "./DynamicRouter";
 import { responseHandler } from "./ResponseHandlerMiddleware";
-import { dynamicRequire } from "./utils/dynamicRequire";
 
-import { AutoDiscoveryConfig } from "./decorators/types";
-import { AutoRegisterProvider } from "./providers/AutoRegisterProvider";
-import { ServiceProvider } from "./support/ServiceProvider";
+import { AutoDiscoveryConfig } from "../di/decorators/types";
+import { AutoRegisterProvider } from "../di/providers/AutoRegisterProvider";
+import { ServiceProvider } from "./ServiceProvider";
 
 export interface ArcanaJSConfig {
   port?: number | string;
@@ -45,7 +45,7 @@ export interface ArcanaJSConfig {
   providers?: (new (app: ArcanaJSServer) => ServiceProvider)[];
 }
 
-import { Container } from "./Container";
+import { Container } from "../di/Container";
 
 class ArcanaJSServer {
   public app: Express;
@@ -57,6 +57,7 @@ class ArcanaJSServer {
   private providers: ServiceProvider[] = [];
 
   private initialized = false;
+  private isShuttingDown = false;
 
   constructor(config: ArcanaJSConfig) {
     this.config = config;
@@ -334,14 +335,10 @@ class ArcanaJSServer {
 
             // Register ts-node if needed
             if (file.endsWith(".tsx") || file.endsWith(".ts")) {
-              try {
-                dynamicRequire("ts-node/register");
-              } catch (e) {
-                // Ignore
-              }
+              ModuleLoader.registerTsNode();
             }
 
-            const pageModule = dynamicRequire(fullPath);
+            const pageModule = ModuleLoader.require(fullPath);
             views[viewName] = pageModule.default || pageModule;
           } catch (error) {
             console.error(`Failed to load view ${viewName}:`, error);
@@ -386,7 +383,16 @@ class ArcanaJSServer {
     const autoHandle = this.config.autoHandleSignals !== false;
     if (autoHandle) {
       const shutdown = async (signal: string) => {
+        if (this.isShuttingDown) return;
         console.log(`\n⚠ Received ${signal}, shutting down gracefully...`);
+
+        // Force exit after 10s if graceful shutdown hangs
+        const forceExit = setTimeout(() => {
+          console.error("✗ Shutdown timed out, forcing exit");
+          process.exit(1);
+        }, 10000);
+        forceExit.unref();
+
         try {
           await this.stop();
           console.log("✓ Shutdown complete");
@@ -411,6 +417,9 @@ class ArcanaJSServer {
    * Stop the HTTP server and close DB connection if present.
    */
   public async stop(): Promise<void> {
+    if (this.isShuttingDown && !this.serverInstance) return;
+    this.isShuttingDown = true;
+
     // Close HTTP server
     if (this.serverInstance) {
       console.log("⏳ Stopping HTTP server...");

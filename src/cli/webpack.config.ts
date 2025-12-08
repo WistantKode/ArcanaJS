@@ -415,7 +415,7 @@ export const createServerConfig = (): webpack.Configuration => {
     optimization: {
       nodeEnv: false,
       splitChunks: false,
-      minimize: true,
+      minimize: isProduction,
     },
     ignoreWarnings: [
       {

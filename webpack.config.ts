@@ -14,6 +14,7 @@ const commonConfig: webpack.Configuration = {
     arcanajs: path.resolve(cwd, "src/lib/index.server.ts"),
     arcanox: path.resolve(cwd, "src/lib/index.arcanox.ts"),
     "arcanajs.client": path.resolve(cwd, "src/lib/index.client.ts"),
+    "arcanajs.di": path.resolve(cwd, "src/lib/index.di.ts"),
     "arcanajs.validator": path.resolve(cwd, "src/lib/index.validator.ts"),
     "arcanajs.auth": path.resolve(cwd, "src/lib/index.auth.ts"),
     "arcanajs.mail": path.resolve(cwd, "src/lib/index.mail.ts"),
