@@ -1,6 +1,10 @@
+import { createRequire } from "node:module";
 import path from "node:path";
 import webpack from "webpack";
 import nodeExternals from "webpack-node-externals";
+
+const require = createRequire(import.meta.url);
+const TerserPlugin = require("terser-webpack-plugin");
 
 const cwd = process.cwd();
 
@@ -54,6 +58,11 @@ const commonConfig: webpack.Configuration = {
 const devConfig: webpack.Configuration = {
   ...commonConfig,
   mode: "development",
+  entry: {
+    ...(commonConfig.entry as Record<string, string>),
+    // Add HMR client only in development
+    "lib/client/hmr-client": path.resolve(cwd, "src/lib/client/hmr-client.ts"),
+  },
   output: {
     ...commonConfig.output,
     path: path.resolve(cwd, "dist/development"),
@@ -62,6 +71,21 @@ const devConfig: webpack.Configuration = {
   optimization: {
     nodeEnv: false,
     minimize: false,
+    splitChunks: {
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: "vendors",
+          priority: 10,
+        },
+        common: {
+          minChunks: 2,
+          priority: 5,
+          reuseExistingChunk: true,
+          name: "common",
+        },
+      },
+    },
   },
 };
 
@@ -75,7 +99,32 @@ const prodConfig: webpack.Configuration = {
   },
   optimization: {
     nodeEnv: false,
-    minimize: false,
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          format: {
+            comments: false,
+          },
+        },
+        extractComments: false,
+      }),
+    ],
+    splitChunks: {
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: "vendors",
+          priority: 10,
+        },
+        common: {
+          minChunks: 2,
+          priority: 5,
+          reuseExistingChunk: true,
+          name: "common",
+        },
+      },
+    },
   },
 };
 

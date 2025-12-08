@@ -22,6 +22,15 @@ export class MongoAdapter implements DatabaseAdapter {
 
     const options: any = {};
 
+    if (config.pool) {
+      options.minPoolSize = config.pool.min;
+      options.maxPoolSize = config.pool.max;
+    }
+
+    if (config.ssl !== undefined) {
+      options.tls = config.ssl;
+    }
+
     // Only add auth if not using a connection string that likely already has it
     // or if explicitly provided to override
     if (!config.url && !config.uri && config.username && config.password) {

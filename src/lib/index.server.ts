@@ -4,9 +4,31 @@ import ArcanaJSServer, { ArcanaJSConfig } from "./server/ArcanaJSServer";
 // ============================================================================
 // Server Core Exports
 // ============================================================================
+// Dependency Injection Decorators
+export {
+  Controller,
+  Injectable,
+  Repository,
+  Service,
+} from "./server/decorators/decorators";
 
+// DI Types
+export type {
+  AutoDiscoveryConfig,
+  InjectableOptions,
+  InjectableScope,
+} from "./server/decorators/types";
+
+// Container
+export { Container, container } from "./server/Container";
+export type { ClassConstructor, FactoryFunction } from "./server/Container";
+
+// Service Provider
+export { ServiceProvider } from "./server/support/ServiceProvider";
+
+// Server
 export { default as ArcanaJSServer } from "./server/ArcanaJSServer";
-export { Container } from "./server/Container";
+export type { ArcanaJSConfig } from "./server/ArcanaJSServer";
 
 export { Express, NextFunction, Request, Response } from "express";
 
@@ -21,12 +43,6 @@ export { default as Route } from "./server/Router";
 // ============================================================================
 
 export type { Middleware } from "./server/http/Middleware";
-
-// ============================================================================
-// Provider Exports
-// ============================================================================
-
-export { ServiceProvider } from "./server/support/ServiceProvider";
 
 // ============================================================================
 // Server Factory Function

@@ -77,6 +77,18 @@ export class DatabaseProvider extends ServiceProvider {
     }
   }
 
+  async boot() {
+    // Ensure connection is established on boot
+    try {
+      await this.app.container.make("DBConnection");
+    } catch (error) {
+      console.error(
+        "✗ DatabaseProvider: Failed to establish connection on boot",
+        error
+      );
+    }
+  }
+
   async shutdown() {
     try {
       console.log("⚙️  DatabaseProvider: Closing connection...");

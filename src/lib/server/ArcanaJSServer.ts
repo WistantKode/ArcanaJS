@@ -13,6 +13,8 @@ import { createDynamicRouter } from "./DynamicRouter";
 import { responseHandler } from "./ResponseHandlerMiddleware";
 import { dynamicRequire } from "./utils/dynamicRequire";
 
+import { AutoDiscoveryConfig } from "./decorators/types";
+import { AutoRegisterProvider } from "./providers/AutoRegisterProvider";
 import { ServiceProvider } from "./support/ServiceProvider";
 
 export interface ArcanaJSConfig {
@@ -37,6 +39,8 @@ export interface ArcanaJSConfig {
   mail?: any;
   /** Database configuration */
   database?: any;
+  /** Auto-discovery configuration */
+  autoDiscovery?: AutoDiscoveryConfig;
   /** Service providers to load */
   providers?: (new (app: ArcanaJSServer) => ServiceProvider)[];
 }
@@ -87,6 +91,25 @@ class ArcanaJSServer {
   }
 
   private async registerProviders() {
+    // Auto-discovery provider
+    if (this.config.autoDiscovery && this.config.autoDiscovery.enabled) {
+      // Enforce ArcanaJS structure
+      const directories = [
+        "src/app/Http/Controllers",
+        "src/app/Services",
+        "src/app/Repositories",
+      ];
+
+      const config = {
+        ...this.config.autoDiscovery,
+        directories,
+      };
+
+      const provider = new AutoRegisterProvider(this, config);
+      await provider.register();
+      this.providers.push(provider);
+    }
+
     if (this.config.providers) {
       for (const ProviderClass of this.config.providers) {
         const provider = new ProviderClass(this);
@@ -130,13 +153,37 @@ class ArcanaJSServer {
     resolvedViews.NotFoundPage = resolvedViews.NotFoundPage || NotFoundPage;
     resolvedViews.ErrorPage = resolvedViews.ErrorPage || ErrorPage;
 
-    // Security headers
+    // Generate nonce for CSP (must be before helmet)
+    this.app.use(
+      (
+        req: express.Request,
+        res: express.Response,
+        next: express.NextFunction
+      ) => {
+        // Generate a unique nonce for each request
+        const nonce = require("crypto").randomBytes(16).toString("base64");
+        res.locals.nonce = nonce;
+        next();
+      }
+    );
+
+    // Security headers with nonce-based CSP
+    const isDevelopment = process.env.NODE_ENV === "development";
     this.app.use(
       helmet({
         contentSecurityPolicy: {
           directives: {
             ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-            styleSrc: ["'self'", "'unsafe-inline'"],
+            "style-src": ["'self'", "'unsafe-inline'"], // Keep for styled-components
+            "script-src": [
+              "'self'",
+              // Use nonce for inline scripts
+              (req, res) => `'nonce-${(res as express.Response).locals.nonce}'`,
+            ],
+            // Allow WebSocket connections in development for HMR
+            "connect-src": isDevelopment
+              ? ["'self'", "ws://localhost:*", "wss://localhost:*"]
+              : ["'self'"],
           },
         },
       })
