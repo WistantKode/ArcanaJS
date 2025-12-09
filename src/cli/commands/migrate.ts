@@ -73,7 +73,7 @@ export const handleMigrate = async (args: string[]) => {
 
     // 2. Set global adapter for user's Arcanox instance (used by migration files imported from node_modules)
     // This solves the split-brain issue by allowing the user's instance to find the adapter globally
-    global.ArcanaDatabaseAdapter = adapter;
+    global.ArcanaJSDatabaseAdapter = adapter;
 
     const migrationsPath = path.resolve(
       process.cwd(),

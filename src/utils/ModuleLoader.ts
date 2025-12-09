@@ -1,5 +1,3 @@
-declare const __non_webpack_require__: NodeJS.Require;
-
 /**
  * Professional Module Loader Utility
  *
@@ -21,23 +19,25 @@ export class ModuleLoader {
    * @returns The required module
    */
   static require(id: string): any {
-    // 1. Try __non_webpack_require__ (Webpack specific)
+    // 1. Try module.require (Node environment)
     try {
-      if (typeof __non_webpack_require__ !== "undefined") {
-        return __non_webpack_require__(id);
+      // Use eval to avoid Webpack bundling
+      const r = eval("module.require");
+      if (r) {
+        return r(id);
       }
     } catch (e) {
       // Ignore
     }
 
-    // 2. Try createRequire (Node 12+)
+    // 2. Try to use createRequire from module (ESM support)
     try {
-      // Use eval("require") to get the 'module' package dynamically
-      const { createRequire } = eval("require")("module");
+      // Use eval to hide require from webpack
+      const r = eval("req" + "uire");
+      const { createRequire } = r("module");
       if (createRequire) {
-        // Create a require function anchored to the project root
-        const require = createRequire(process.cwd() + "/package.json");
-        return require(id);
+        const nativeRequire = createRequire(process.cwd() + "/");
+        return nativeRequire(id);
       }
     } catch (e) {
       // Ignore
@@ -54,11 +54,16 @@ export class ModuleLoader {
       // Ignore errors during lookup
     }
 
-    // 4. Last resort: eval("require")
-    // This might return Webpack's require in some contexts, but it's a last resort.
-    return eval("require")(id);
-  }
+    // 4. Last resort: new Function("return require")
+    try {
+      const r = new Function("return req" + "uire")();
+      return r(id);
+    } catch (e) {
+      // Ignore
+    }
 
+    throw new Error(`Could not require module '${id}'`);
+  }
   /**
    * Registers ts-node for runtime TypeScript compilation.
    *

@@ -1,0 +1,1 @@
+export { ViewsResolver } from "./ViewsResolver";

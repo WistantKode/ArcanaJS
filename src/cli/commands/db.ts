@@ -73,7 +73,7 @@ export const handleDb = async (args: string[]) => {
     Model.setAdapter(adapter); // Set adapter for Models used in seeders
 
     // Set global adapter for user's Arcanox instance
-    global.ArcanaDatabaseAdapter = adapter;
+    global.ArcanaJSDatabaseAdapter = adapter;
 
     // Load DatabaseSeeder
     const seederPath = path.resolve(

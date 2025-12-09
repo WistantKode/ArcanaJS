@@ -1,4 +1,5 @@
 node_modules
+.arcanajs
 dist
 .env
 .DS_Store

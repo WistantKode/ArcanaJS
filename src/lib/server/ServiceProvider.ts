@@ -1,9 +1,9 @@
-import ArcanaJSServer from "./ArcanaJSServer";
+import { IApplication } from "./types/IApplication";
 
 export abstract class ServiceProvider {
-  protected app: ArcanaJSServer;
+  protected app: IApplication;
 
-  constructor(app: ArcanaJSServer) {
+  constructor(app: IApplication) {
     this.app = app;
   }
 
