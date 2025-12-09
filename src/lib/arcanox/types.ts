@@ -203,8 +203,8 @@ export interface DatabaseConfig {
   // Connection options
   connectTimeout?: number;
   socketTimeout?: number;
-  keepAlive?: boolean;
-  keepAliveInitialDelay?: number;
+  keepAlive?: boolean; // Supported in MySQL/PostgreSQL (not MongoDB 6.0+)
+  keepAliveInitialDelay?: number; // Supported in MySQL/PostgreSQL (not MongoDB 6.0+)
 
   // MongoDB-specific options
   authSource?: string;

@@ -188,8 +188,6 @@ const mongoConfig: DatabaseConfig = {
   // Connection options
   connectTimeout: 10000,
   socketTimeout: 360000,
-  keepAlive: true,
-  keepAliveInitialDelay: 300000,
 
   // Debug mode
   debug: process.env.NODE_ENV === "development",

@@ -70,7 +70,7 @@ export class JsonResource<TResource = any> {
     if (resource && typeof resource.toJSON === "function") {
       return resource.toJSON();
     }
-    return this.toArray(resource, request);
+    return this.toArray(request);
   }
 
   /** Override in child resources */

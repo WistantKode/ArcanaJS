@@ -153,13 +153,8 @@ export class MongoAdapter implements DatabaseAdapter {
       options.socketTimeoutMS = config.socketTimeout;
     }
 
-    // Keep alive
-    if (config.keepAlive !== undefined) {
-      options.keepAlive = config.keepAlive;
-      if (config.keepAliveInitialDelay) {
-        options.keepAliveInitialDelayMS = config.keepAliveInitialDelay;
-      }
-    }
+    // Note: keepAlive and keepAliveInitialDelayMS options are no longer supported
+    // in MongoDB driver 6.0+. They are now always enabled by default.
 
     // MongoDB-specific options
     if (config.authSource) options.authSource = config.authSource;
