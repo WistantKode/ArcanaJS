@@ -22,6 +22,11 @@ export class MailProvider extends ServiceProvider {
       return;
     }
 
+    if (!mailConfig) {
+      console.warn("⚠ MailProvider: Configuration is empty - Skipping setup");
+      return;
+    }
+
     try {
       // Initialize Mail Service
       await MailService.init(mailConfig);
@@ -30,7 +35,7 @@ export class MailProvider extends ServiceProvider {
       );
 
       // Register in container
-      this.app.container.singleton("MailConfig", () => mailConfig!);
+      this.app.container.singleton("MailConfig", () => mailConfig);
       this.app.container.singleton("MailService", () => MailService);
 
       console.log("✅ MailProvider: Ready");

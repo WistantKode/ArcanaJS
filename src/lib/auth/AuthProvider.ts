@@ -26,6 +26,11 @@ export class AuthProvider extends ServiceProvider {
       return;
     }
 
+    if (!authConfig) {
+      console.warn("⚠ AuthProvider: Configuration is empty - Skipping setup");
+      return;
+    }
+
     try {
       // Initialize JWT Service
       JWTService.init(authConfig.jwt);
@@ -47,7 +52,7 @@ export class AuthProvider extends ServiceProvider {
       console.log("✓ AuthProvider: Auth middleware registered");
 
       // Register in container
-      this.app.container.singleton("AuthConfig", () => authConfig!);
+      this.app.container.singleton("AuthConfig", () => authConfig);
 
       console.log("✅ AuthProvider: Ready");
     } catch (error) {
