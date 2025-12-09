@@ -544,7 +544,7 @@ QueryBuilder.macro(
               const val = record[col];
               if (val === null || val === undefined) return "NULL";
               if (typeof val === "string")
-                return `'${val.replace(/'/g, "\\'")}'`;
+                return `'${val.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`;
               if (typeof val === "object") return `'${JSON.stringify(val)}'`;
               if (typeof val === "boolean") return val ? 1 : 0;
               return val;
