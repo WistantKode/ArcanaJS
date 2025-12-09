@@ -3,30 +3,29 @@ import webpack from "webpack";
 import nodeExternals from "webpack-node-externals";
 
 import {
+  createAssetRule,
   // Optimization
   createCacheConfig,
-  createResolveConfig,
+  createCssModuleRule,
   createDevOptimization,
-  createProdOptimization,
+  createGlobalCssRule,
+  createMapIgnoreRule,
   createOutputConfig,
-  createWatchOptions,
-  getDevtool,
+  createProdOptimization,
+  createResolveConfig,
+  createServerCssRules,
   // Loaders
   createTsRule,
-  createCssModuleRule,
-  createGlobalCssRule,
-  createServerCssRules,
-  createAssetRule,
-  createMapIgnoreRule,
-  resolveLoader,
-  // Plugins
-  getClientPlugins,
-  getServerPlugins,
+  createWatchOptions,
   // Entries
   generateViewsLoader,
   getClientEntries,
-  getServerEntry,
+  // Plugins
+  getClientPlugins,
   getCommonAliases,
+  getDevtool,
+  getServerEntry,
+  getServerPlugins,
 } from "./build";
 
 const cwd = process.cwd();
@@ -46,7 +45,7 @@ export function createClientConfig(): webpack.Configuration {
     mode: isProduction ? "production" : "development",
     target: "web",
     entry: entries,
-    
+
     output: createOutputConfig(
       path.resolve(cwd, ".arcanajs/client"),
       isProduction,
@@ -76,7 +75,7 @@ export function createClientConfig(): webpack.Configuration {
 
     optimization: isProduction
       ? createProdOptimization("client")
-      : createDevOptimization(),
+      : createDevOptimization("client"),
 
     performance: {
       maxEntrypointSize: 512000,
@@ -85,7 +84,7 @@ export function createClientConfig(): webpack.Configuration {
     },
 
     devtool: getDevtool(isProduction, "client"),
-    
+
     watchOptions: createWatchOptions(),
 
     // Improved stats output
@@ -152,7 +151,7 @@ export function createServerConfig(): webpack.Configuration {
 
     optimization: isProduction
       ? createProdOptimization("server")
-      : createDevOptimization(),
+      : createDevOptimization("server"),
 
     devtool: getDevtool(isProduction, "server"),
 
@@ -187,5 +186,7 @@ export function createMultiConfig(): webpack.Configuration[] {
 }
 
 // Re-export for backward compatibility
-export { createClientConfig as getClientConfig };
-export { createServerConfig as getServerConfig };
+export {
+  createClientConfig as getClientConfig,
+  createServerConfig as getServerConfig,
+};
