@@ -129,8 +129,8 @@ class ArcanaJSServer {
   private setupMiddleware() {
     const {
       staticDir = "public",
-      distDir = "dist/public",
-      indexFile = "dist/public/index.html",
+      distDir = ".arcanajs/client",
+      indexFile = ".arcanajs/client/index.html",
       views,
       viewsContext,
       routes,

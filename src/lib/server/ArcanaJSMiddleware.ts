@@ -120,8 +120,8 @@ export const createArcanaJSMiddleware = (options: ArcanaJSOptions) => {
           const scriptTag = `<script id="__ARCANAJS_DATA__" type="application/json" nonce="${nonce}">${scriptContent}</script>`;
 
           // Inject HMR port for the client (script is auto-injected by webpack)
-          const hmrPortScript = process.env.ARCANA_HMR_PORT
-            ? `<script nonce="${nonce}">window.__ARCANA_HMR_PORT__ = ${process.env.ARCANA_HMR_PORT};</script>`
+          const hmrPortScript = process.env.ARCANAJS_HMR_PORT
+            ? `<script nonce="${nonce}">window.__ARCANAJS_HMR_PORT__ = ${process.env.ARCANAJS_HMR_PORT};</script>`
             : "";
 
           const html = htmlData

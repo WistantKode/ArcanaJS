@@ -1,5 +1,6 @@
 import UserService from "@/app/Services/UserService";
-import { Controller, type Request, type Response } from "arcanajs/server";
+import { type Request, type Response } from "arcanajs/server";
+import { Controller } from "arcanajs/di";
 @Controller()
 class UserController {
   constructor(private userService: UserService) {}

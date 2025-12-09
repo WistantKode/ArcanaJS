@@ -177,7 +177,7 @@ class HMRClient {
 
 // Initialize HMR client if port is provided
 if (typeof window !== "undefined") {
-  const hmrPort = (window as any).__ARCANA_HMR_PORT__;
+  const hmrPort = (window as any).__ARCANAJS_HMR_PORT__;
 
   if (hmrPort) {
     const client = new HMRClient(hmrPort);

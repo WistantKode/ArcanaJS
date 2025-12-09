@@ -105,11 +105,12 @@ export const createClientConfig = (): webpack.Configuration => {
   }
 
   return {
+    name: "client",
     mode: isProduction ? "production" : "development",
     target: "web",
     entry: entries,
     output: {
-      path: path.resolve(cwd, "dist/public"),
+      path: path.resolve(cwd, ".arcanajs/client"),
       filename: isProduction
         ? "[name].[contenthash].bundle.js"
         : "[name].bundle.js",
@@ -299,6 +300,13 @@ export const createClientConfig = (): webpack.Configuration => {
       hints: isProduction ? "warning" : false,
     },
     devtool: isProduction ? "source-map" : "source-map", // Use source-map instead of eval-source-map for CSP compliance
+    watchOptions: {
+      ignored: [
+        "**/node_modules",
+        path.resolve(cwd, ".arcanajs/**"),
+        path.resolve(cwd, "dist/**"),
+      ],
+    },
   };
 };
 
@@ -309,11 +317,12 @@ export const createServerConfig = (): webpack.Configuration => {
   const viewsLoaderPath = getViewsLoaderPath();
 
   return {
+    name: "server",
     mode: isProduction ? "production" : "development",
     target: "node",
     entry: serverEntry,
     output: {
-      path: path.resolve(cwd, "dist"),
+      path: path.resolve(cwd, ".arcanajs/server"),
       filename: "server.js",
     },
     externals: [
@@ -411,6 +420,13 @@ export const createServerConfig = (): webpack.Configuration => {
       ],
     },
     devtool: isProduction ? "source-map" : "source-map", // Use source-map for CSP compliance
+    watchOptions: {
+      ignored: [
+        "**/node_modules",
+        path.resolve(cwd, ".arcanajs/**"),
+        path.resolve(cwd, "dist/**"),
+      ],
+    },
     plugins: [],
     optimization: {
       nodeEnv: false,

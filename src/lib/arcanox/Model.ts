@@ -64,10 +64,10 @@ export class Model<T = any> extends Macroable {
    * Get the database adapter
    */
   protected static getAdapter(): DatabaseAdapter {
-    const adapter = this.adapter || global.ArcanaDatabaseAdapter;
+    const adapter = this.adapter || global.ArcanaJSDatabaseAdapter;
     if (!adapter) {
       throw new Error(
-        "Database adapter not set. Call Model.setAdapter() or ensure global.ArcanaDatabaseAdapter is set."
+        "Database adapter not set. Call Model.setAdapter() or ensure global.ArcanaJSDatabaseAdapter is set."
       );
     }
     return adapter;

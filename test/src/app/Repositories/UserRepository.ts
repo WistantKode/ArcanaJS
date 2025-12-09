@@ -1,4 +1,4 @@
-import { Repository } from "arcanajs/server";
+import { Repository } from "arcanajs/di";
 import { User } from "../Models/User";
 
 @Repository()

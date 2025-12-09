@@ -1,4 +1,4 @@
-import { Service } from "arcanajs/server";
+import { Service } from "arcanajs/di";
 import UserRepository from "../Repositories/UserRepository";
 
 @Service()

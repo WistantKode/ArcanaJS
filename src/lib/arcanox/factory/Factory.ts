@@ -1,4 +1,5 @@
 import type { Faker } from "@faker-js/faker";
+import { ModuleLoader } from "../../../utils/ModuleLoader";
 import { Model } from "../Model";
 
 /**
@@ -11,7 +12,7 @@ export abstract class Factory<T extends Model> {
   constructor() {
     // We'll load faker dynamically to avoid bundling it if not used
     // But for type safety we declare it here
-    this.faker = require("@faker-js/faker").faker;
+    this.faker = ModuleLoader.require("@faker-js/faker").faker;
   }
 
   /**

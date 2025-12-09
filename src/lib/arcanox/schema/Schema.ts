@@ -20,10 +20,10 @@ export class Schema {
    * Get the database adapter
    */
   private static getAdapter(): DatabaseAdapter {
-    const adapter = this.adapter || global.ArcanaDatabaseAdapter;
+    const adapter = this.adapter || global.ArcanaJSDatabaseAdapter;
     if (!adapter) {
       throw new Error(
-        "Database adapter not set. Call Schema.setAdapter() or ensure global.ArcanaDatabaseAdapter is set."
+        "Database adapter not set. Call Schema.setAdapter() or ensure global.ArcanaJSDatabaseAdapter is set."
       );
     }
     return adapter;
