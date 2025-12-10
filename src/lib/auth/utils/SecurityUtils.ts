@@ -386,13 +386,23 @@ export class SecurityUtils {
 
   /**
    * Sanitize string to prevent injection
+   * Uses iterative replacement to handle multi-character patterns that could bypass single-pass sanitization
    */
   static sanitizeString(input: string): string {
-    return input
-      .replace(/[<>]/g, "") // Remove angle brackets
-      .replace(/(?:javascript:|data:|vbscript:)/gi, "") // Remove dangerous protocols
-      .replace(/on\w+=/gi, "") // Remove event handlers
-      .trim();
+    let result = input;
+    let previous = "";
+
+    // Iteratively remove dangerous patterns until no more changes occur
+    // This prevents bypass attempts like "javajascript:script:" -> "javascript:"
+    while (result !== previous) {
+      previous = result;
+      result = result
+        .replace(/[<>]/g, "") // Remove angle brackets
+        .replace(/(?:javascript:|data:|vbscript:)/gi, "") // Remove dangerous protocols
+        .replace(/on\w+=/gi, ""); // Remove event handlers
+    }
+
+    return result.trim();
   }
 
   /**

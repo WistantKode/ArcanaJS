@@ -68,7 +68,8 @@ export class AuthMiddleware implements Middleware {
     const authHeader = req.headers.authorization;
     if (authHeader) {
       // Support both "Bearer" and "bearer" (case-insensitive)
-      const match = authHeader.match(/^Bearer\s+(.+)$/i);
+      // Use non-greedy match with explicit character class to avoid polynomial regex
+      const match = authHeader.match(/^Bearer\s([^\s].*)$/i);
       if (match) {
         return match[1];
       }
