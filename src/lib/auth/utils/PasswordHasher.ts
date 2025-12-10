@@ -240,7 +240,16 @@ export class PasswordHasher {
    * Pre-hash long passwords to handle bcrypt's 72-byte limit
    */
   private static preHash(password: string): string {
-    return crypto.createHash("sha256").update(password).digest("base64");
+    // Use PBKDF2 for pre-hashing, with static salt (server-side secret, or config pepper)
+    const salt =
+      (this.config?.preHashSalt || this.config?.pepper || "default_pre_hash_salt");
+    // Should use at least 310,000 iterations, output length 32 bytes, hash function sha256
+    const iterations = this.config?.preHashIterations || 310_000;
+    const keylen = 32;
+    const digest = "sha256";
+    return crypto
+      .pbkdf2Sync(password, salt, iterations, keylen, digest)
+      .toString("base64");
   }
 
   /**
@@ -278,11 +287,15 @@ export class PasswordHasher {
       );
     }
 
-    const randomBytes = crypto.randomBytes(length);
     let password = "";
-
-    for (let i = 0; i < length; i++) {
-      password += charset[randomBytes[i] % charset.length];
+    const charsetLength = charset.length;
+    const maxUnbiasedValue = Math.floor(256 / charsetLength) * charsetLength;
+    while (password.length < length) {
+      const randomByte = crypto.randomBytes(1)[0];
+      if (randomByte >= maxUnbiasedValue) {
+        continue; // reject biased byte
+      }
+      password += charset[randomByte % charsetLength];
     }
 
     return password;
