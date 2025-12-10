@@ -1,4 +1,4 @@
-import bcrypt from "bcryptjs";
+import * as argon2 from "argon2";
 import crypto from "crypto";
 import { AuthConfig } from "../types";
 
@@ -13,12 +13,27 @@ export interface PasswordStrengthResult {
 }
 
 /**
- * Secure Password Hasher with validation and multiple algorithm support
+ * Argon2 configuration for secure password hashing
+ * Based on OWASP recommendations for Argon2id
+ */
+interface Argon2Options {
+  type: 0 | 1 | 2; // 0 = argon2d, 1 = argon2i, 2 = argon2id
+  memoryCost: number; // in KiB
+  timeCost: number; // iterations
+  parallelism: number;
+}
+
+/**
+ * Secure Password Hasher with validation and Argon2 algorithm support
  * Implements OWASP password security best practices
+ * Uses Argon2id which provides sufficient computational effort for modern security requirements
  */
 export class PasswordHasher {
   private static config: AuthConfig["password"];
-  private static readonly DEFAULT_SALT_ROUNDS = 12;
+  // OWASP recommended Argon2id parameters: 19 MiB memory, 2 iterations, 1 parallelism
+  private static readonly DEFAULT_MEMORY_COST = 19456; // 19 MiB in KiB
+  private static readonly DEFAULT_TIME_COST = 2;
+  private static readonly DEFAULT_PARALLELISM = 1;
   private static readonly MIN_PASSWORD_LENGTH = 8;
   private static readonly MAX_PASSWORD_LENGTH = 128;
 
@@ -48,16 +63,18 @@ export class PasswordHasher {
     // Apply pepper if configured (pre-hash secret)
     const pepperedPassword = this.applyPepper(password);
 
-    // Use configured salt rounds or default
-    const saltRounds = this.config?.saltRounds || this.DEFAULT_SALT_ROUNDS;
+    // Get Argon2 options from config or use secure defaults
+    const argon2Options: Argon2Options = {
+      type: argon2.argon2id,
+      memoryCost:
+        this.config?.argon2Options?.memoryCost || this.DEFAULT_MEMORY_COST,
+      timeCost: this.config?.argon2Options?.timeCost || this.DEFAULT_TIME_COST,
+      parallelism:
+        this.config?.argon2Options?.parallelism || this.DEFAULT_PARALLELISM,
+    };
 
-    // Bcrypt has a 72-byte limit, so we hash long passwords first
-    const passwordToHash =
-      pepperedPassword.length > 72
-        ? this.preHash(pepperedPassword)
-        : pepperedPassword;
-
-    return bcrypt.hash(passwordToHash, saltRounds);
+    // Argon2 handles long passwords natively, no pre-hashing needed
+    return argon2.hash(pepperedPassword, argon2Options);
   }
 
   /**
@@ -69,8 +86,15 @@ export class PasswordHasher {
   static async verify(password: string, hash: string): Promise<boolean> {
     // Validate inputs
     if (!password || !hash) {
-      // Still perform a dummy comparison to prevent timing attacks
-      await bcrypt.compare("dummy", "$2a$12$dummy.hash.for.timing.safety");
+      // Still perform a dummy verification to prevent timing attacks
+      // Use a valid Argon2 hash format for timing-safe dummy comparison
+      const dummyHash =
+        "$argon2id$v=19$m=19456,t=2,p=1$c29tZXNhbHQ$dGltaW5nc2FmZWR1bW15aGFzaA";
+      try {
+        await argon2.verify(dummyHash, "dummy");
+      } catch {
+        /* expected */
+      }
       return false;
     }
 
@@ -78,20 +102,27 @@ export class PasswordHasher {
     if (
       password.length > (this.config?.maxLength || this.MAX_PASSWORD_LENGTH)
     ) {
-      await bcrypt.compare("dummy", "$2a$12$dummy.hash.for.timing.safety");
+      // Timing-safe rejection for too-long passwords
+      const dummyHash =
+        "$argon2id$v=19$m=19456,t=2,p=1$c29tZXNhbHQ$dGltaW5nc2FmZWR1bW15aGFzaA";
+      try {
+        await argon2.verify(dummyHash, "dummy");
+      } catch {
+        /* expected */
+      }
       return false;
     }
 
     // Apply pepper if configured
     const pepperedPassword = this.applyPepper(password);
 
-    // Handle bcrypt's 72-byte limit
-    const passwordToVerify =
-      pepperedPassword.length > 72
-        ? this.preHash(pepperedPassword)
-        : pepperedPassword;
-
-    return bcrypt.compare(passwordToVerify, hash);
+    // Argon2 handles long passwords natively, no pre-hashing needed
+    try {
+      return await argon2.verify(hash, pepperedPassword);
+    } catch {
+      // Hash format invalid or verification failed
+      return false;
+    }
   }
 
   /**
@@ -237,22 +268,6 @@ export class PasswordHasher {
   }
 
   /**
-   * Pre-hash long passwords to handle bcrypt's 72-byte limit
-   */
-  private static preHash(password: string): string {
-    // Use PBKDF2 for pre-hashing, with static salt (server-side secret, or config pepper)
-    const salt =
-      (this.config?.preHashSalt || this.config?.pepper || "default_pre_hash_salt");
-    // Should use at least 310,000 iterations, output length 32 bytes, hash function sha256
-    const iterations = this.config?.preHashIterations || 310_000;
-    const keylen = 32;
-    const digest = "sha256";
-    return crypto
-      .pbkdf2Sync(password, salt, iterations, keylen, digest)
-      .toString("base64");
-  }
-
-  /**
    * Generate a cryptographically secure random password
    * @param length Password length (default: 16)
    * @param options Character set options
@@ -302,17 +317,42 @@ export class PasswordHasher {
   }
 
   /**
-   * Check if a hash needs to be rehashed (e.g., after config change)
+   * Check if a hash needs to be rehashed (e.g., after config change or algorithm upgrade)
+   * Supports both Argon2 and legacy bcrypt hashes
    */
   static needsRehash(hash: string): boolean {
-    const saltRounds = this.config?.saltRounds || this.DEFAULT_SALT_ROUNDS;
+    // Check if it's an Argon2 hash
+    if (hash.startsWith("$argon2")) {
+      // Parse Argon2 hash parameters: $argon2id$v=19$m=19456,t=2,p=1$salt$hash
+      const match = hash.match(/\$argon2id\$v=\d+\$m=(\d+),t=(\d+),p=(\d+)\$/);
+      if (!match) return true; // Invalid format, needs rehash
 
-    // Extract rounds from bcrypt hash
-    const match = hash.match(/^\$2[aby]?\$(\d+)\$/);
-    if (!match) return true;
+      const hashMemoryCost = parseInt(match[1], 10);
+      const hashTimeCost = parseInt(match[2], 10);
+      const hashParallelism = parseInt(match[3], 10);
 
-    const hashRounds = parseInt(match[1], 10);
-    return hashRounds < saltRounds;
+      const configMemoryCost =
+        this.config?.argon2Options?.memoryCost || this.DEFAULT_MEMORY_COST;
+      const configTimeCost =
+        this.config?.argon2Options?.timeCost || this.DEFAULT_TIME_COST;
+      const configParallelism =
+        this.config?.argon2Options?.parallelism || this.DEFAULT_PARALLELISM;
+
+      // Needs rehash if any parameter is lower than configured
+      return (
+        hashMemoryCost < configMemoryCost ||
+        hashTimeCost < configTimeCost ||
+        hashParallelism < configParallelism
+      );
+    }
+
+    // Legacy bcrypt hash - always needs rehash to upgrade to Argon2
+    if (hash.startsWith("$2")) {
+      return true;
+    }
+
+    // Unknown hash format - needs rehash
+    return true;
   }
 
   /**

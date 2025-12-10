@@ -167,7 +167,17 @@ class HMRClient {
     // For link tags, we can force reload by updating the href
     document.querySelectorAll('link[rel="stylesheet"]').forEach((link) => {
       const href = link.getAttribute("href");
-      if (href && !href.includes("fonts.googleapis.com")) {
+      if (href) {
+        // Use URL parsing to properly check the hostname instead of substring matching
+        // This prevents bypass attempts like "fonts.googleapis.com.evil.com"
+        try {
+          const url = new URL(href, window.location.origin);
+          if (url.hostname === "fonts.googleapis.com") {
+            return; // Skip Google Fonts stylesheets
+          }
+        } catch {
+          // If URL parsing fails, it's likely a relative URL which is safe to reload
+        }
         // Add timestamp to bust cache
         const newHref = href.replace(/(\?|&)_hmr=\d+/, "");
         link.setAttribute(
