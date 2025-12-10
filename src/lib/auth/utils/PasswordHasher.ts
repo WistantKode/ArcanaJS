@@ -255,16 +255,16 @@ export class PasswordHasher {
 
   /**
    * Apply pepper to password (server-side secret)
+   * Concatenates pepper with password so Argon2 receives the full password data.
+   * This preserves password entropy while adding the server-side secret.
    */
   private static applyPepper(password: string): string {
     if (!this.config?.pepper) {
       return password;
     }
-    // Use HMAC to combine password with pepper
-    return crypto
-      .createHmac("sha256", this.config.pepper)
-      .update(password)
-      .digest("hex");
+    // Concatenate pepper with password - Argon2 will handle the secure hashing
+    // Using pepper as prefix prevents length-extension attacks
+    return this.config.pepper + password;
   }
 
   /**
