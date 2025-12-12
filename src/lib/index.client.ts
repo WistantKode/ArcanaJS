@@ -8,11 +8,27 @@ export { default as Link } from "./shared/components/Link";
 export { default as NavLink } from "./shared/components/NavLink";
 export { default as Page } from "./shared/components/Page";
 
+// Component types
+export type { LinkProps, PrefetchStrategy } from "./shared/components/Link";
+
 // ============================================================================
 // Client Exports
 // ============================================================================
 
 export { default as hydrateArcanaJS } from "./client/index";
+
+// ============================================================================
+// Universal Redirect (SSR + SPA)
+// ============================================================================
+
+export {
+  isRedirectError,
+  navigateTo,
+  permanentRedirect,
+  redirect,
+  RedirectError,
+  temporaryRedirect,
+} from "./shared/utils/redirect";
 
 // ============================================================================
 // Hook Exports
@@ -26,7 +42,19 @@ export { default as useParams } from "./shared/hooks/useParams";
 export { default as useQuery } from "./shared/hooks/useQuery";
 export { default as useRouter } from "./shared/hooks/useRouter";
 
-// Data fetching hooks 
+// NEW: Professional routing hooks
+export {
+  useNavigationEventOnce,
+  default as useNavigationEvents,
+} from "./shared/hooks/useNavigationEvents";
+export { default as usePathname } from "./shared/hooks/usePathname";
+export {
+  default as useRouteMatch,
+  useRouteMatchCheck,
+} from "./shared/hooks/useRouteMatch";
+export { default as useSearchParams } from "./shared/hooks/useSearchParams";
+
+// Data fetching hooks
 export { default as useAsyncData } from "./shared/hooks/useAsyncData";
 export { default as useFetch } from "./shared/hooks/useFetch";
 export { default as useLazyFetch } from "./shared/hooks/useLazyFetch";
@@ -35,7 +63,7 @@ export { default as useLazyFetch } from "./shared/hooks/useLazyFetch";
 export { default as useLoading } from "./shared/hooks/useLoading";
 export { default as useTransition } from "./shared/hooks/useTransition";
 
-// SSR-compatible hooks 
+// SSR-compatible hooks
 export { default as useCookie } from "./shared/hooks/useCookie";
 export { default as useError } from "./shared/hooks/useError";
 export { default as useId } from "./shared/hooks/useId";
@@ -54,6 +82,12 @@ export {
   RequestContext,
   RequestContextProvider,
 } from "./shared/context/RequestContext";
+export {
+  parseQueryString,
+  RouterContext,
+  RouterProvider,
+  serializeQueryString,
+} from "./shared/context/RouterContext";
 export {
   clearGlobalError,
   createError,
@@ -79,6 +113,25 @@ export {
 // ============================================================================
 // Types
 // ============================================================================
+
+// Router context types
+export type {
+  NavigateOptions,
+  RouterContextType,
+} from "./shared/context/RouterContext";
+
+// Routing hook types
+export type { NavigationEventHandlers } from "./shared/hooks/useNavigationEvents";
+export type {
+  RouteMatchResult,
+  UseRouteMatchOptions,
+} from "./shared/hooks/useRouteMatch";
+export type { UseRouterReturn } from "./shared/hooks/useRouter";
+export type {
+  SetSearchParamsFunction,
+  SetSearchParamsOptions,
+  UseSearchParamsReturn,
+} from "./shared/hooks/useSearchParams";
 
 // Data fetching types
 export type {
