@@ -42,7 +42,6 @@ export function createResolveConfig(aliases: Record<string, string>) {
     extensions: [".ts", ".tsx", ".js", ".jsx"],
     alias: aliases,
     // Performance optimizations
-    symlinks: false,
     cacheWithContext: false,
   };
 }
@@ -99,17 +98,18 @@ export function createProdOptimization(
       cacheGroups: {
         default: false,
         vendors: false,
-        // React vendor chunk
+        // React vendor chunk (Next.js style)
         react: {
-          test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
-          name: "react-vendor",
+          test: /[\\/]node_modules[\\/](react|react-dom|scheduler|use-sync-external-store)[\\/]/,
+          name: "framework", // Next.js calls the core React bundle "framework"
           chunks: "all",
           priority: 40,
+          enforce: true,
         },
-        // Framework chunk (arcanajs)
-        framework: {
+        // ArcanaJS Core
+        arcanajs: {
           test: /[\\/]node_modules[\\/]arcanajs[\\/]/,
-          name: "framework",
+          name: "arcanajs",
           chunks: "all",
           priority: 30,
         },
