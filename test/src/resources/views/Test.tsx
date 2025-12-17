@@ -1,4 +1,3 @@
-"use client";
 import { useLazyFetch } from "arcanajs/client";
 import { useEffect, useState } from "react";
 
@@ -37,15 +36,16 @@ const Test = () => {
       {error && (
         <div style={{ color: "red", marginTop: "1rem" }}>
           <h3>Error:</h3>
-          <pre>{JSON.stringify(error, null, 2)}</pre>
+          <pre>{JSON.stringify(error.message, null, 2)}</pre>
         </div>
       )}
 
       {data && (
-        <div style={{ color: "green", marginTop: "1rem" }}>
+        <div style={{ color: "yellow", marginTop: "1rem" }}>
           <h3>Success! Server Response:</h3>
           <pre>{JSON.stringify(data, null, 2)}</pre>
         </div>
+        
       )}
 
       <p>Check the console for mount logs.</p>
